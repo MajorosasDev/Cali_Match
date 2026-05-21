@@ -15,7 +15,7 @@ import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ParcheCrearRouteImport } from './routes/parche.crear'
 import { Route as ParcheCodeRouteImport } from './routes/parche.$code'
-import { Route as ParcheCodeMatchRouteImport } from './routes/parche.$code.match'
+import { Route as ParcheCodeMatchRouteImport } from './routes/parche_.$code.match'
 
 const TelegramRoute = TelegramRouteImport.update({
   id: '/telegram',
@@ -48,9 +48,9 @@ const ParcheCodeRoute = ParcheCodeRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const ParcheCodeMatchRoute = ParcheCodeMatchRouteImport.update({
-  id: '/match',
-  path: '/match',
-  getParentRoute: () => ParcheCodeRoute,
+  id: '/parche_/$code/match',
+  path: '/parche/$code/match',
+  getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -58,7 +58,7 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof OnboardingRoute
   '/registro': typeof RegistroRoute
   '/telegram': typeof TelegramRoute
-  '/parche/$code': typeof ParcheCodeRouteWithChildren
+  '/parche/$code': typeof ParcheCodeRoute
   '/parche/crear': typeof ParcheCrearRoute
   '/parche/$code/match': typeof ParcheCodeMatchRoute
 }
@@ -67,7 +67,7 @@ export interface FileRoutesByTo {
   '/onboarding': typeof OnboardingRoute
   '/registro': typeof RegistroRoute
   '/telegram': typeof TelegramRoute
-  '/parche/$code': typeof ParcheCodeRouteWithChildren
+  '/parche/$code': typeof ParcheCodeRoute
   '/parche/crear': typeof ParcheCrearRoute
   '/parche/$code/match': typeof ParcheCodeMatchRoute
 }
@@ -77,9 +77,9 @@ export interface FileRoutesById {
   '/onboarding': typeof OnboardingRoute
   '/registro': typeof RegistroRoute
   '/telegram': typeof TelegramRoute
-  '/parche/$code': typeof ParcheCodeRouteWithChildren
+  '/parche/$code': typeof ParcheCodeRoute
   '/parche/crear': typeof ParcheCrearRoute
-  '/parche/$code/match': typeof ParcheCodeMatchRoute
+  '/parche_/$code/match': typeof ParcheCodeMatchRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -108,7 +108,7 @@ export interface FileRouteTypes {
     | '/telegram'
     | '/parche/$code'
     | '/parche/crear'
-    | '/parche/$code/match'
+    | '/parche_/$code/match'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -116,8 +116,9 @@ export interface RootRouteChildren {
   OnboardingRoute: typeof OnboardingRoute
   RegistroRoute: typeof RegistroRoute
   TelegramRoute: typeof TelegramRoute
-  ParcheCodeRoute: typeof ParcheCodeRouteWithChildren
+  ParcheCodeRoute: typeof ParcheCodeRoute
   ParcheCrearRoute: typeof ParcheCrearRoute
+  ParcheCodeMatchRoute: typeof ParcheCodeMatchRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -164,36 +165,35 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ParcheCodeRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/parche/$code/match': {
-      id: '/parche/$code/match'
-      path: '/match'
+    '/parche_/$code/match': {
+      id: '/parche_/$code/match'
+      path: '/parche/$code/match'
       fullPath: '/parche/$code/match'
       preLoaderRoute: typeof ParcheCodeMatchRouteImport
-      parentRoute: typeof ParcheCodeRoute
+      parentRoute: typeof rootRouteImport
     }
   }
 }
-
-interface ParcheCodeRouteChildren {
-  ParcheCodeMatchRoute: typeof ParcheCodeMatchRoute
-}
-
-const ParcheCodeRouteChildren: ParcheCodeRouteChildren = {
-  ParcheCodeMatchRoute: ParcheCodeMatchRoute,
-}
-
-const ParcheCodeRouteWithChildren = ParcheCodeRoute._addFileChildren(
-  ParcheCodeRouteChildren,
-)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   OnboardingRoute: OnboardingRoute,
   RegistroRoute: RegistroRoute,
   TelegramRoute: TelegramRoute,
-  ParcheCodeRoute: ParcheCodeRouteWithChildren,
+  ParcheCodeRoute: ParcheCodeRoute,
   ParcheCrearRoute: ParcheCrearRoute,
+  ParcheCodeMatchRoute: ParcheCodeMatchRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
