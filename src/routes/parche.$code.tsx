@@ -109,6 +109,32 @@ function EstadoParche() {
             <div className="mt-3 h-2 rounded-full bg-white/5 overflow-hidden">
               <motion.div className="h-full bg-[image:var(--gradient-sunset)]" animate={{ width: `${progress}%` }} transition={{ duration: 0.5 }} />
             </div>
+
+            <div className="mt-5 pt-4 border-t border-white/5 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2 text-sm">
+                <UserPlus className="h-4 w-4 text-[var(--sunset)]" />
+                <span className="text-muted-foreground">Admitir más personas</span>
+              </div>
+              <div className="flex items-center gap-2 glass rounded-xl p-1">
+                <button
+                  onClick={() => updateSize(-1)}
+                  disabled={parche.size <= 2}
+                  className="h-8 w-8 rounded-lg bg-white/5 hover:bg-white/10 inline-flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed"
+                  aria-label="Reducir cupo"
+                >
+                  <Minus className="h-3.5 w-3.5" />
+                </button>
+                <div className="min-w-10 text-center text-sm font-bold">{parche.size}</div>
+                <button
+                  onClick={() => updateSize(1)}
+                  disabled={parche.size >= 20}
+                  className="h-8 w-8 rounded-lg bg-[image:var(--gradient-sunset)] inline-flex items-center justify-center text-black disabled:opacity-30"
+                  aria-label="Aumentar cupo"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            </div>
           </div>
 
           {/* Members */}
