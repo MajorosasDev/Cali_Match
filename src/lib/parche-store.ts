@@ -28,12 +28,21 @@ export interface Member {
   answers?: OnboardingAnswers;
 }
 
+export interface AdminQuiz {
+  disponibilidad?: string[]; // e.g. ["lun","mar"]
+  lugares?: string[];
+  mood?: string;
+  franja?: "dia" | "tarde" | "noche";
+}
+
 export interface Parche {
   code: string;
   name: string;
   size: number;
   type: Vibe;
   members: Member[];
+  adminAnswered?: boolean;
+  adminQuiz?: AdminQuiz;
 }
 
 const PROFILE_KEY = "cg.profile";
