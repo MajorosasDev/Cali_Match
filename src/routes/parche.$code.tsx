@@ -19,8 +19,31 @@ function EstadoParche() {
 
   useEffect(() => {
     const p = getParche(code);
+    if (p && !p.adminAnswered) {
+      navigate({ to: "/parche/$code/quiz", params: { code } });
+      return;
+    }
     setParche(p);
-  }, [code]);
+  }, [code, navigate]);
+
+  const updateSize = (delta: number) => {
+    if (!parche) return;
+    const newSize = Math.max(2, Math.min(20, parche.size + delta));
+    if (newSize === parche.size) return;
+    let members = parche.members;
+    if (newSize > parche.size) {
+      const profile = getProfile();
+      const fresh = mockMembers(newSize, profile?.name);
+      // keep existing answered/pending statuses for current members, append new pending
+      const extras = fresh.slice(parche.members.length).map((m) => ({ ...m, status: "pending" as const }));
+      members = [...parche.members, ...extras];
+    } else {
+      members = parche.members.slice(0, newSize);
+    }
+    const updated = { ...parche, size: newSize, members };
+    saveParche(updated);
+    setParche(updated);
+  };
 
   // Simulate members answering over time
   useEffect(() => {
