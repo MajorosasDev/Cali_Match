@@ -83,10 +83,16 @@ function TelegramRedirect() {
             >
               {copied ? <><Check className="h-4 w-4" /> Link copiado</> : <><Copy className="h-4 w-4" /> Copiar link</>}
             </button>
+            <Link
+              to="/"
+              className="rounded-full px-6 py-3 text-sm inline-flex items-center justify-center gap-2 text-muted-foreground hover:text-foreground transition"
+            >
+              <ArrowLeft className="h-4 w-4" /> Volver al inicio
+            </Link>
           </div>
 
           <p className="mt-6 text-xs text-muted-foreground">
-            Tu parche y respuestas ya están guardados — el bot los reconocerá automáticamente.
+            Tu parche y respuestas ya están guardados — el bot los reconocerá automáticamente. Puedes volver al inicio para crear más grupos.
           </p>
         </motion.div>
       </main>

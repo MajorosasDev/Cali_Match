@@ -18,9 +18,9 @@ function EstadoParche() {
   const [allReady, setAllReady] = useState(false);
 
   useEffect(() => {
-    const p = getParche();
+    const p = getParche(code);
     setParche(p);
-  }, []);
+  }, [code]);
 
   // Simulate members answering over time
   useEffect(() => {
