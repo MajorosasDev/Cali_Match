@@ -39,6 +39,7 @@ export interface Parche {
 const PROFILE_KEY = "cg.profile";
 const ONB_KEY = "cg.onboarding";
 const PARCHE_KEY = "cg.parche";
+const PARCHES_KEY = "cg.parches";
 
 const safeWindow = () => typeof window !== "undefined";
 
@@ -48,6 +49,7 @@ export const getProfile = (): Profile | null => {
   const raw = localStorage.getItem(PROFILE_KEY);
   return raw ? JSON.parse(raw) : null;
 };
+export const clearProfile = () => safeWindow() && localStorage.removeItem(PROFILE_KEY);
 
 export const saveOnboarding = (a: OnboardingAnswers) =>
   safeWindow() && localStorage.setItem(ONB_KEY, JSON.stringify(a));
@@ -57,12 +59,41 @@ export const getOnboarding = (): OnboardingAnswers => {
   return raw ? JSON.parse(raw) : {};
 };
 
-export const saveParche = (p: Parche) =>
-  safeWindow() && localStorage.setItem(PARCHE_KEY, JSON.stringify(p));
-export const getParche = (): Parche | null => {
+export const getParches = (): Parche[] => {
+  if (!safeWindow()) return [];
+  const raw = localStorage.getItem(PARCHES_KEY);
+  return raw ? JSON.parse(raw) : [];
+};
+
+export const saveParche = (p: Parche) => {
+  if (!safeWindow()) return;
+  localStorage.setItem(PARCHE_KEY, JSON.stringify(p));
+  const list = getParches();
+  const idx = list.findIndex((x) => x.code === p.code);
+  if (idx >= 0) list[idx] = p;
+  else list.unshift(p);
+  localStorage.setItem(PARCHES_KEY, JSON.stringify(list));
+};
+
+export const getParche = (code?: string): Parche | null => {
   if (!safeWindow()) return null;
+  if (code) {
+    const found = getParches().find((p) => p.code === code);
+    if (found) return found;
+  }
   const raw = localStorage.getItem(PARCHE_KEY);
   return raw ? JSON.parse(raw) : null;
+};
+
+export const removeParche = (code: string) => {
+  if (!safeWindow()) return;
+  const list = getParches().filter((p) => p.code !== code);
+  localStorage.setItem(PARCHES_KEY, JSON.stringify(list));
+  const current = localStorage.getItem(PARCHE_KEY);
+  if (current) {
+    const cur = JSON.parse(current) as Parche;
+    if (cur.code === code) localStorage.removeItem(PARCHE_KEY);
+  }
 };
 
 export const genCode = () =>
