@@ -37,7 +37,7 @@ function TelegramRedirect() {
       <GlowBg />
       <header className="px-5 py-5 flex items-center justify-between">
         <Logo />
-        <Link to="/" className="text-sm text-muted-foreground inline-flex items-center gap-1"><ArrowLeft className="h-4 w-4" /> Inicio</Link>
+        <Link to="/personal_landing" className="text-sm text-muted-foreground inline-flex items-center gap-1"><ArrowLeft className="h-4 w-4" /> Mi espacio</Link>
       </header>
 
       <main className="flex-1 grid place-items-center px-5 py-8">
@@ -84,10 +84,10 @@ function TelegramRedirect() {
               {copied ? <><Check className="h-4 w-4" /> Link copiado</> : <><Copy className="h-4 w-4" /> Copiar link</>}
             </button>
             <Link
-              to="/"
+              to="/personal_landing"
               className="rounded-full px-6 py-3 text-sm inline-flex items-center justify-center gap-2 text-muted-foreground hover:text-foreground transition"
             >
-              <ArrowLeft className="h-4 w-4" /> Volver al inicio
+              <ArrowLeft className="h-4 w-4" /> Volver a mi espacio
             </Link>
           </div>
 
