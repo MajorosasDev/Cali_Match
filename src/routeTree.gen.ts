@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TelegramRouteImport } from './routes/telegram'
 import { Route as RegistroRouteImport } from './routes/registro'
+import { Route as Personal_landingRouteImport } from './routes/personal_landing'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ParcheCrearRouteImport } from './routes/parche.crear'
@@ -25,6 +26,11 @@ const TelegramRoute = TelegramRouteImport.update({
 const RegistroRoute = RegistroRouteImport.update({
   id: '/registro',
   path: '/registro',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const Personal_landingRoute = Personal_landingRouteImport.update({
+  id: '/personal_landing',
+  path: '/personal_landing',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OnboardingRoute = OnboardingRouteImport.update({
@@ -56,6 +62,7 @@ const ParcheCodeMatchRoute = ParcheCodeMatchRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/onboarding': typeof OnboardingRoute
+  '/personal_landing': typeof Personal_landingRoute
   '/registro': typeof RegistroRoute
   '/telegram': typeof TelegramRoute
   '/parche/$code': typeof ParcheCodeRoute
@@ -65,6 +72,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/onboarding': typeof OnboardingRoute
+  '/personal_landing': typeof Personal_landingRoute
   '/registro': typeof RegistroRoute
   '/telegram': typeof TelegramRoute
   '/parche/$code': typeof ParcheCodeRoute
@@ -75,6 +83,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/onboarding': typeof OnboardingRoute
+  '/personal_landing': typeof Personal_landingRoute
   '/registro': typeof RegistroRoute
   '/telegram': typeof TelegramRoute
   '/parche/$code': typeof ParcheCodeRoute
@@ -86,6 +95,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/onboarding'
+    | '/personal_landing'
     | '/registro'
     | '/telegram'
     | '/parche/$code'
@@ -95,6 +105,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/onboarding'
+    | '/personal_landing'
     | '/registro'
     | '/telegram'
     | '/parche/$code'
@@ -104,6 +115,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/onboarding'
+    | '/personal_landing'
     | '/registro'
     | '/telegram'
     | '/parche/$code'
@@ -114,6 +126,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   OnboardingRoute: typeof OnboardingRoute
+  Personal_landingRoute: typeof Personal_landingRoute
   RegistroRoute: typeof RegistroRoute
   TelegramRoute: typeof TelegramRoute
   ParcheCodeRoute: typeof ParcheCodeRoute
@@ -135,6 +148,13 @@ declare module '@tanstack/react-router' {
       path: '/registro'
       fullPath: '/registro'
       preLoaderRoute: typeof RegistroRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/personal_landing': {
+      id: '/personal_landing'
+      path: '/personal_landing'
+      fullPath: '/personal_landing'
+      preLoaderRoute: typeof Personal_landingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/onboarding': {
@@ -178,6 +198,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   OnboardingRoute: OnboardingRoute,
+  Personal_landingRoute: Personal_landingRoute,
   RegistroRoute: RegistroRoute,
   TelegramRoute: TelegramRoute,
   ParcheCodeRoute: ParcheCodeRoute,
@@ -187,3 +208,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
