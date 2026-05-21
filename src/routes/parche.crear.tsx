@@ -102,10 +102,10 @@ function CrearParche() {
             </div>
 
             <button
-              onClick={() => navigate({ to: "/parche/$code", params: { code: created.code } })}
+              onClick={() => navigate({ to: "/parche/$code/quiz", params: { code: created.code } })}
               className="mt-5 btn-sunset w-full rounded-2xl py-3.5 inline-flex items-center justify-center gap-2"
             >
-              Ver estado del parche <ArrowRight className="h-4 w-4" />
+              Responder tu quiz <ArrowRight className="h-4 w-4" />
             </button>
           </motion.div>
         </main>
