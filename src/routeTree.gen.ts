@@ -16,6 +16,7 @@ import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ParcheCrearRouteImport } from './routes/parche.crear'
 import { Route as ParcheCodeRouteImport } from './routes/parche.$code'
+import { Route as ParcheCodeQuizRouteImport } from './routes/parche_.$code.quiz'
 import { Route as ParcheCodeMatchRouteImport } from './routes/parche_.$code.match'
 
 const TelegramRoute = TelegramRouteImport.update({
@@ -53,6 +54,11 @@ const ParcheCodeRoute = ParcheCodeRouteImport.update({
   path: '/parche/$code',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ParcheCodeQuizRoute = ParcheCodeQuizRouteImport.update({
+  id: '/parche_/$code/quiz',
+  path: '/parche/$code/quiz',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ParcheCodeMatchRoute = ParcheCodeMatchRouteImport.update({
   id: '/parche_/$code/match',
   path: '/parche/$code/match',
@@ -68,6 +74,7 @@ export interface FileRoutesByFullPath {
   '/parche/$code': typeof ParcheCodeRoute
   '/parche/crear': typeof ParcheCrearRoute
   '/parche/$code/match': typeof ParcheCodeMatchRoute
+  '/parche/$code/quiz': typeof ParcheCodeQuizRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -78,6 +85,7 @@ export interface FileRoutesByTo {
   '/parche/$code': typeof ParcheCodeRoute
   '/parche/crear': typeof ParcheCrearRoute
   '/parche/$code/match': typeof ParcheCodeMatchRoute
+  '/parche/$code/quiz': typeof ParcheCodeQuizRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -89,6 +97,7 @@ export interface FileRoutesById {
   '/parche/$code': typeof ParcheCodeRoute
   '/parche/crear': typeof ParcheCrearRoute
   '/parche_/$code/match': typeof ParcheCodeMatchRoute
+  '/parche_/$code/quiz': typeof ParcheCodeQuizRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -101,6 +110,7 @@ export interface FileRouteTypes {
     | '/parche/$code'
     | '/parche/crear'
     | '/parche/$code/match'
+    | '/parche/$code/quiz'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -111,6 +121,7 @@ export interface FileRouteTypes {
     | '/parche/$code'
     | '/parche/crear'
     | '/parche/$code/match'
+    | '/parche/$code/quiz'
   id:
     | '__root__'
     | '/'
@@ -121,6 +132,7 @@ export interface FileRouteTypes {
     | '/parche/$code'
     | '/parche/crear'
     | '/parche_/$code/match'
+    | '/parche_/$code/quiz'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -132,6 +144,7 @@ export interface RootRouteChildren {
   ParcheCodeRoute: typeof ParcheCodeRoute
   ParcheCrearRoute: typeof ParcheCrearRoute
   ParcheCodeMatchRoute: typeof ParcheCodeMatchRoute
+  ParcheCodeQuizRoute: typeof ParcheCodeQuizRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -185,6 +198,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ParcheCodeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/parche_/$code/quiz': {
+      id: '/parche_/$code/quiz'
+      path: '/parche/$code/quiz'
+      fullPath: '/parche/$code/quiz'
+      preLoaderRoute: typeof ParcheCodeQuizRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/parche_/$code/match': {
       id: '/parche_/$code/match'
       path: '/parche/$code/match'
@@ -204,6 +224,7 @@ const rootRouteChildren: RootRouteChildren = {
   ParcheCodeRoute: ParcheCodeRoute,
   ParcheCrearRoute: ParcheCrearRoute,
   ParcheCodeMatchRoute: ParcheCodeMatchRoute,
+  ParcheCodeQuizRoute: ParcheCodeQuizRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
