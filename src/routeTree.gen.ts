@@ -16,8 +16,8 @@ import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ParcheCrearRouteImport } from './routes/parche.crear'
 import { Route as ParcheCodeRouteImport } from './routes/parche.$code'
-import { Route as ParcheCodeQuizRouteImport } from './routes/parche_.$code.quiz'
 import { Route as ParcheCodeMatchRouteImport } from './routes/parche_.$code.match'
+import { Route as ParcheCodeQuizRouteImport } from './routes/parche_.$code.quiz'
 
 const TelegramRoute = TelegramRouteImport.update({
   id: '/telegram',
@@ -54,14 +54,14 @@ const ParcheCodeRoute = ParcheCodeRouteImport.update({
   path: '/parche/$code',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ParcheCodeQuizRoute = ParcheCodeQuizRouteImport.update({
-  id: '/parche_/$code/quiz',
-  path: '/parche/$code/quiz',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ParcheCodeMatchRoute = ParcheCodeMatchRouteImport.update({
   id: '/parche_/$code/match',
   path: '/parche/$code/match',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ParcheCodeQuizRoute = ParcheCodeQuizRouteImport.update({
+  id: '/parche_/$code/quiz',
+  path: '/parche/$code/quiz',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -198,18 +198,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ParcheCodeRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/parche_/$code/quiz': {
-      id: '/parche_/$code/quiz'
-      path: '/parche/$code/quiz'
-      fullPath: '/parche/$code/quiz'
-      preLoaderRoute: typeof ParcheCodeQuizRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/parche_/$code/match': {
       id: '/parche_/$code/match'
       path: '/parche/$code/match'
       fullPath: '/parche/$code/match'
       preLoaderRoute: typeof ParcheCodeMatchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/parche_/$code/quiz': {
+      id: '/parche_/$code/quiz'
+      path: '/parche/$code/quiz'
+      fullPath: '/parche/$code/quiz'
+      preLoaderRoute: typeof ParcheCodeQuizRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
