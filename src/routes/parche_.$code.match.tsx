@@ -6,7 +6,7 @@ import { GlowBg } from "@/components/GlowBg";
 import { Logo } from "@/components/Logo";
 import { getParche, type Parche } from "@/lib/parche-store";
 
-export const Route = createFileRoute("/parche/$code/match")({
+export const Route = createFileRoute("/parche_/$code/match")({
   head: () => ({ meta: [{ title: "Compatibilidad — CaliGuide" }] }),
   component: Match,
 });
