@@ -1,10 +1,10 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "motion/react";
 import { useEffect, useState } from "react";
-import { ArrowLeft, Check, Clock, Sparkles, Users } from "lucide-react";
+import { ArrowLeft, Check, Clock, Minus, Plus, Sparkles, UserPlus, Users } from "lucide-react";
 import { GlowBg } from "@/components/GlowBg";
 import { Logo } from "@/components/Logo";
-import { getParche, saveParche, type Parche } from "@/lib/parche-store";
+import { getParche, saveParche, mockMembers, getProfile, type Parche } from "@/lib/parche-store";
 
 export const Route = createFileRoute("/parche/$code")({
   head: () => ({ meta: [{ title: "Estado del parche — CaliGuide" }] }),
