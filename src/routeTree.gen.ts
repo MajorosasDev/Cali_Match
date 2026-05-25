@@ -11,7 +11,6 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TelegramRouteImport } from './routes/telegram'
 import { Route as RegistroRouteImport } from './routes/registro'
-import { Route as Personal_landingRouteImport } from './routes/personal_landing'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as LandingRouteImport } from './routes/landing'
@@ -30,11 +29,6 @@ const TelegramRoute = TelegramRouteImport.update({
 const RegistroRoute = RegistroRouteImport.update({
   id: '/registro',
   path: '/registro',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const Personal_landingRoute = Personal_landingRouteImport.update({
-  id: '/personal_landing',
-  path: '/personal_landing',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OnboardingRoute = OnboardingRouteImport.update({
@@ -89,7 +83,6 @@ export interface FileRoutesByFullPath {
   '/landing': typeof LandingRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
-  '/personal_landing': typeof Personal_landingRoute
   '/registro': typeof RegistroRoute
   '/telegram': typeof TelegramRoute
   '/parche/$code': typeof ParcheCodeRoute
@@ -103,7 +96,6 @@ export interface FileRoutesByTo {
   '/landing': typeof LandingRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
-  '/personal_landing': typeof Personal_landingRoute
   '/registro': typeof RegistroRoute
   '/telegram': typeof TelegramRoute
   '/parche/$code': typeof ParcheCodeRoute
@@ -118,7 +110,6 @@ export interface FileRoutesById {
   '/landing': typeof LandingRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
-  '/personal_landing': typeof Personal_landingRoute
   '/registro': typeof RegistroRoute
   '/telegram': typeof TelegramRoute
   '/parche/$code': typeof ParcheCodeRoute
@@ -134,7 +125,6 @@ export interface FileRouteTypes {
     | '/landing'
     | '/login'
     | '/onboarding'
-    | '/personal_landing'
     | '/registro'
     | '/telegram'
     | '/parche/$code'
@@ -148,7 +138,6 @@ export interface FileRouteTypes {
     | '/landing'
     | '/login'
     | '/onboarding'
-    | '/personal_landing'
     | '/registro'
     | '/telegram'
     | '/parche/$code'
@@ -162,7 +151,6 @@ export interface FileRouteTypes {
     | '/landing'
     | '/login'
     | '/onboarding'
-    | '/personal_landing'
     | '/registro'
     | '/telegram'
     | '/parche/$code'
@@ -177,7 +165,6 @@ export interface RootRouteChildren {
   LandingRoute: typeof LandingRoute
   LoginRoute: typeof LoginRoute
   OnboardingRoute: typeof OnboardingRoute
-  Personal_landingRoute: typeof Personal_landingRoute
   RegistroRoute: typeof RegistroRoute
   TelegramRoute: typeof TelegramRoute
   ParcheCodeRoute: typeof ParcheCodeRoute
@@ -200,13 +187,6 @@ declare module '@tanstack/react-router' {
       path: '/registro'
       fullPath: '/registro'
       preLoaderRoute: typeof RegistroRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/personal_landing': {
-      id: '/personal_landing'
-      path: '/personal_landing'
-      fullPath: '/personal_landing'
-      preLoaderRoute: typeof Personal_landingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/onboarding': {
@@ -281,7 +261,6 @@ const rootRouteChildren: RootRouteChildren = {
   LandingRoute: LandingRoute,
   LoginRoute: LoginRoute,
   OnboardingRoute: OnboardingRoute,
-  Personal_landingRoute: Personal_landingRoute,
   RegistroRoute: RegistroRoute,
   TelegramRoute: TelegramRoute,
   ParcheCodeRoute: ParcheCodeRoute,
