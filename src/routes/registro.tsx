@@ -72,7 +72,7 @@ function Registro() {
               />
             </Field>
 
-            <Field label="Correo electrónico">
+            <Field label="Correo electrónico" required>
               <input
                 type="email"
                 value={form.email}
@@ -82,7 +82,7 @@ function Registro() {
               />
             </Field>
 
-            <Field label="Contraseña">
+            <Field label="Contraseña" required>
               <input
                 type="password"
                 value={form.password}
@@ -93,16 +93,16 @@ function Registro() {
             </Field>
 
             <div className="grid grid-cols-2 gap-3">
-              <Field label="Celular">
+              <Field label="Celular" required>
                 <input
                   value={form.phone}
                   onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                  placeholder="+57 300 000 0000"
+                  placeholder="300 000 0000"
                   className="cg-input"
                 />
               </Field>
 
-              <Field label="Fecha de nacimiento">
+              <Field label="Fecha de nacimiento" required>
                 <input
                   type="date"
                   value={form.birthdate}

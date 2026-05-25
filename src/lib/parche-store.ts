@@ -14,10 +14,11 @@ export interface Profile {
 
 export interface OnboardingAnswers {
   vibe?: Vibe;
-  budget?: number; // 0-100
+  budget?: string;
   distance?: Distancia;
-  ambiente?: Ambiente;
+  ambiente?: string[];
   horario?: Horario;
+  experiencias?: string[];
 }
 
 export interface Member {
@@ -52,7 +53,8 @@ const PARCHES_KEY = "cg.parches";
 
 const safeWindow = () => typeof window !== "undefined";
 
-export const saveProfile = (p: Profile) => safeWindow() && localStorage.setItem(PROFILE_KEY, JSON.stringify(p));
+export const saveProfile = (p: Profile) =>
+  safeWindow() && localStorage.setItem(PROFILE_KEY, JSON.stringify(p));
 export const getProfile = (): Profile | null => {
   if (!safeWindow()) return null;
   const raw = localStorage.getItem(PROFILE_KEY);
@@ -105,8 +107,7 @@ export const removeParche = (code: string) => {
   }
 };
 
-export const genCode = () =>
-  Math.random().toString(36).slice(2, 8).toUpperCase();
+export const genCode = () => Math.random().toString(36).slice(2, 8).toUpperCase();
 
 export const mockMembers = (count: number, currentName?: string): Member[] => {
   const pool = [
