@@ -13,6 +13,8 @@ import { Route as TelegramRouteImport } from './routes/telegram'
 import { Route as RegistroRouteImport } from './routes/registro'
 import { Route as Personal_landingRouteImport } from './routes/personal_landing'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
+import { Route as LandingRouteImport } from './routes/landing'
+import { Route as BienvenidaRouteImport } from './routes/bienvenida'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ParcheCrearRouteImport } from './routes/parche.crear'
 import { Route as ParcheCodeRouteImport } from './routes/parche.$code'
@@ -37,6 +39,16 @@ const Personal_landingRoute = Personal_landingRouteImport.update({
 const OnboardingRoute = OnboardingRouteImport.update({
   id: '/onboarding',
   path: '/onboarding',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LandingRoute = LandingRouteImport.update({
+  id: '/landing',
+  path: '/landing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BienvenidaRoute = BienvenidaRouteImport.update({
+  id: '/bienvenida',
+  path: '/bienvenida',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -67,6 +79,8 @@ const ParcheCodeMatchRoute = ParcheCodeMatchRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/bienvenida': typeof BienvenidaRoute
+  '/landing': typeof LandingRoute
   '/onboarding': typeof OnboardingRoute
   '/personal_landing': typeof Personal_landingRoute
   '/registro': typeof RegistroRoute
@@ -78,6 +92,8 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/bienvenida': typeof BienvenidaRoute
+  '/landing': typeof LandingRoute
   '/onboarding': typeof OnboardingRoute
   '/personal_landing': typeof Personal_landingRoute
   '/registro': typeof RegistroRoute
@@ -90,6 +106,8 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/bienvenida': typeof BienvenidaRoute
+  '/landing': typeof LandingRoute
   '/onboarding': typeof OnboardingRoute
   '/personal_landing': typeof Personal_landingRoute
   '/registro': typeof RegistroRoute
@@ -103,6 +121,8 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/bienvenida'
+    | '/landing'
     | '/onboarding'
     | '/personal_landing'
     | '/registro'
@@ -114,6 +134,8 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/bienvenida'
+    | '/landing'
     | '/onboarding'
     | '/personal_landing'
     | '/registro'
@@ -125,6 +147,8 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/bienvenida'
+    | '/landing'
     | '/onboarding'
     | '/personal_landing'
     | '/registro'
@@ -137,6 +161,8 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  BienvenidaRoute: typeof BienvenidaRoute
+  LandingRoute: typeof LandingRoute
   OnboardingRoute: typeof OnboardingRoute
   Personal_landingRoute: typeof Personal_landingRoute
   RegistroRoute: typeof RegistroRoute
@@ -175,6 +201,20 @@ declare module '@tanstack/react-router' {
       path: '/onboarding'
       fullPath: '/onboarding'
       preLoaderRoute: typeof OnboardingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/landing': {
+      id: '/landing'
+      path: '/landing'
+      fullPath: '/landing'
+      preLoaderRoute: typeof LandingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/bienvenida': {
+      id: '/bienvenida'
+      path: '/bienvenida'
+      fullPath: '/bienvenida'
+      preLoaderRoute: typeof BienvenidaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -217,6 +257,8 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  BienvenidaRoute: BienvenidaRoute,
+  LandingRoute: LandingRoute,
   OnboardingRoute: OnboardingRoute,
   Personal_landingRoute: Personal_landingRoute,
   RegistroRoute: RegistroRoute,

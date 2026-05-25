@@ -7,8 +7,6 @@ import { Logo } from "@/components/Logo";
 import {
   saveOnboarding,
   type OnboardingAnswers,
-  type Vibe,
-  type Ambiente,
   type Horario,
   type Distancia,
 } from "@/lib/parche-store";
@@ -18,46 +16,7 @@ export const Route = createFileRoute("/onboarding")({
   component: Onboarding,
 });
 
-const vibes: { id: Vibe; label: string; emoji: string; grad: string }[] = [
-  {
-    id: "salsa",
-    label: "Salsa intensa",
-    emoji: "💃",
-    grad: "from-fuchsia-700 via-purple-700 to-indigo-900",
-  },
-  {
-    id: "rooftop",
-    label: "Rooftop chill",
-    emoji: "🌇",
-    grad: "from-orange-600 via-pink-600 to-purple-700",
-  },
-  {
-    id: "brunch",
-    label: "Brunch aesthetic",
-    emoji: "🥐",
-    grad: "from-amber-500 via-orange-500 to-rose-500",
-  },
-  {
-    id: "perreo",
-    label: "Perreo",
-    emoji: "🔥",
-    grad: "from-rose-600 via-fuchsia-700 to-indigo-700",
-  },
-  {
-    id: "cafe",
-    label: "Café tranqui",
-    emoji: "☕",
-    grad: "from-amber-700 via-stone-600 to-orange-800",
-  },
-  {
-    id: "cultura",
-    label: "Cultura y relax",
-    emoji: "🎨",
-    grad: "from-teal-600 via-cyan-700 to-indigo-800",
-  },
-];
-
-const ambientes: { id: Ambiente; label: string; emoji: string }[] = [
+const ambientes: { id: string; label: string; emoji: string }[] = [
   { id: "elegante", label: "Elegante", emoji: "🥂" },
   { id: "casual", label: "Casual", emoji: "👕" },
   { id: "alternativo", label: "Alternativo", emoji: "🎸" },
@@ -97,7 +56,7 @@ function Onboarding() {
   const finish = () => {
     saveOnboarding(answers);
     setLoading(true);
-    setTimeout(() => navigate({ to: "/parche/crear" }), 2200);
+    setTimeout(() => navigate({ to: "/bienvenida" }), 2200);
   };
 
   const update = <K extends keyof OnboardingAnswers>(k: K, v: OnboardingAnswers[K]) =>
@@ -236,7 +195,9 @@ function Onboarding() {
                         <button
                           key={o.id}
                           onClick={() => update("distance", o.id)}
-                          className={`glass rounded-2xl p-5 flex items-center gap-4 text-left transition ${active ? "ring-2 ring-[var(--sunset)] glow-orange" : "hover:bg-white/5"}`}
+                          className={`glass rounded-2xl p-5 flex items-center gap-4 text-left transition ${
+                            active ? "ring-2 ring-[var(--sunset)] glow-orange" : "hover:bg-white/5"
+                          }`}
                         >
                           <span className="text-3xl">{o.emoji}</span>
                           <div>
@@ -301,7 +262,9 @@ function Onboarding() {
                           key={o.id}
                           whileTap={{ scale: 0.97 }}
                           onClick={() => update("horario", o.id)}
-                          className={`glass rounded-2xl p-5 text-center transition ${active ? "ring-2 ring-[var(--sunset)] glow-orange" : "hover:bg-white/5"}`}
+                          className={`glass rounded-2xl p-5 text-center transition ${
+                            active ? "ring-2 ring-[var(--sunset)] glow-orange" : "hover:bg-white/5"
+                          }`}
                         >
                           <div className="text-4xl">{o.emoji}</div>
                           <div className="mt-2 font-bold">{o.label}</div>
@@ -334,29 +297,6 @@ function Onboarding() {
           </div>
         </div>
       </main>
-
-      <style>{`
-        .cg-range {
-          -webkit-appearance: none;
-          appearance: none;
-          height: 6px;
-          border-radius: 999px;
-          background: linear-gradient(90deg, oklch(0.7 0.21 35), oklch(0.85 0.17 88));
-          outline: none;
-        }
-        .cg-range::-webkit-slider-thumb {
-          -webkit-appearance: none;
-          appearance: none;
-          height: 28px; width: 28px; border-radius: 50%;
-          background: white; cursor: pointer;
-          box-shadow: 0 0 0 4px oklch(0.7 0.21 35 / 0.3), 0 6px 20px oklch(0 0 0 / 0.4);
-          border: 3px solid oklch(0.7 0.21 35);
-        }
-        .cg-range::-moz-range-thumb {
-          height: 28px; width: 28px; border-radius: 50%;
-          background: white; cursor: pointer; border: 3px solid oklch(0.7 0.21 35);
-        }
-      `}</style>
     </div>
   );
 }
@@ -377,17 +317,6 @@ function StepShell({
       {children}
     </div>
   );
-}
-
-function budgetLabel(v: number) {
-  if (v < 33) return "Económico";
-  if (v < 66) return "Medio";
-  return "Premium";
-}
-function budgetRange(v: number) {
-  if (v < 33) return "$20K - $50K por persona";
-  if (v < 66) return "$50K - $120K por persona";
-  return "$120K+ por persona";
 }
 
 function LoadingFinal() {

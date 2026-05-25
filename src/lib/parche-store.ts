@@ -1,5 +1,4 @@
 // Lightweight client-side store using localStorage for demo flow.
-export type Vibe = "salsa" | "rooftop" | "brunch" | "perreo" | "cafe" | "cultura";
 export type Ambiente = "elegante" | "casual" | "alternativo" | "tropical" | "romantico" | "fiesta";
 export type Horario = "tarde" | "noche" | "madrugada";
 export type Distancia = "cerca" | "medio" | "lejos";
@@ -13,7 +12,6 @@ export interface Profile {
 }
 
 export interface OnboardingAnswers {
-  vibe?: Vibe;
   budget?: string;
   distance?: Distancia;
   ambiente?: string[];
@@ -40,7 +38,7 @@ export interface Parche {
   code: string;
   name: string;
   size: number;
-  type: Vibe;
+  type: string;
   members: Member[];
   adminAnswered?: boolean;
   adminQuiz?: AdminQuiz;
