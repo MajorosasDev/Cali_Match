@@ -1,40 +1,69 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { motion } from "motion/react";
 import { useState } from "react";
-import { ArrowRight, ArrowLeft } from "lucide-react";
+import { ArrowRight, ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { GlowBg } from "@/components/GlowBg";
 import { Logo } from "@/components/Logo";
-import { saveProfile } from "@/lib/parche-store";
+import { getProfile } from "@/lib/parche-store";
 
-export const Route = createFileRoute("/registro")({
-  head: () => ({ meta: [{ title: "Crea tu perfil — CaliGuide" }] }),
-  component: Registro,
+export const Route = createFileRoute("/login")({
+  head: () => ({ meta: [{ title: "Iniciar sesión — CaliGuide" }] }),
+  component: Login,
 });
 
-function Registro() {
+function Login() {
   const navigate = useNavigate();
-  const [form, setForm] = useState({
-    name: "",
-    email: "",
-    password: "",
-    phone: "",
-    birthdate: "",
-  });
+  const [form, setForm] = useState({ email: "", password: "" });
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.name.trim()) return;
-    saveProfile(form);
-    navigate({ to: "/onboarding" });
+    setError("");
+
+    if (!form.email.trim() || !form.password.trim()) {
+      setError("Completa todos los campos.");
+      return;
+    }
+
+    setLoading(true);
+
+    // Simula validación contra el perfil guardado en localStorage
+    setTimeout(() => {
+      const profile = getProfile();
+
+      if (!profile) {
+        setError("No encontramos una cuenta con ese correo. ¿Ya te registraste?");
+        setLoading(false);
+        return;
+      }
+
+      if (profile.email !== form.email.trim()) {
+        setError("Correo o contraseña incorrectos.");
+        setLoading(false);
+        return;
+      }
+
+      if (profile.password !== form.password) {
+        setError("Correo o contraseña incorrectos.");
+        setLoading(false);
+        return;
+      }
+
+      // Login exitoso
+      navigate({ to: "/landing" });
+    }, 800);
   };
 
   return (
     <div className="min-h-screen flex flex-col">
       <GlowBg />
+
       <header className="px-5 py-5 flex items-center justify-between">
         <Logo />
         <Link
-          to="/"
+          to="/registro"
           className="text-sm text-muted-foreground inline-flex items-center gap-1 hover:text-foreground transition"
         >
           <ArrowLeft className="h-4 w-4" /> Volver
@@ -49,28 +78,18 @@ function Registro() {
         >
           <div className="text-center mb-7">
             <p className="text-xs tracking-[0.2em] text-[var(--sunset)] font-semibold">
-              PASO 1 DE 3
+              BIENVENIDO DE VUELTA
             </p>
             <h1 className="mt-3 text-3xl md:text-4xl font-extrabold">
-              Primero, creemos <span className="text-gradient-sunset">tu perfil ✨</span>
+              Inicia <span className="text-gradient-sunset">sesión 👋</span>
             </h1>
             <p className="mt-2 text-muted-foreground text-sm">
-              Solo toma unos segundos para personalizar tu experiencia.
+              Entra con tu correo y contraseña para continuar.
             </p>
           </div>
 
           <form onSubmit={submit} className="glass rounded-3xl p-6 space-y-4 relative">
             <div className="absolute -inset-6 bg-[image:var(--gradient-glow)] blur-3xl -z-10 opacity-60" />
-
-            <Field label="Nombre" required>
-              <input
-                value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
-                placeholder="¿Cómo te llamas?"
-                className="cg-input"
-                autoFocus
-              />
-            </Field>
 
             <Field label="Correo electrónico" required>
               <input
@@ -79,57 +98,61 @@ function Registro() {
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
                 placeholder="tu@correo.com"
                 className="cg-input"
+                autoFocus
               />
             </Field>
 
             <Field label="Contraseña" required>
-              <input
-                type="password"
-                value={form.password}
-                onChange={(e) => setForm({ ...form, password: e.target.value })}
-                placeholder="Mínimo 6 caracteres"
-                className="cg-input"
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={form.password}
+                  onChange={(e) => setForm({ ...form, password: e.target.value })}
+                  placeholder="Tu contraseña"
+                  className="cg-input pr-11"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition"
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
             </Field>
 
-            <div className="grid grid-cols-2 gap-3">
-              <Field label="Celular" required>
-                <input
-                  value={form.phone}
-                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                  placeholder="300 000 0000"
-                  className="cg-input"
-                />
-              </Field>
-
-              <Field label="Fecha de nacimiento" required>
-                <input
-                  type="date"
-                  value={form.birthdate}
-                  onChange={(e) => setForm({ ...form, birthdate: e.target.value })}
-                  className="cg-input"
-                />
-              </Field>
-            </div>
+            {/* Error */}
+            {error && (
+              <motion.p
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-xs text-rose-400 bg-rose-500/10 border border-rose-500/20 rounded-xl px-4 py-2.5"
+              >
+                {error}
+              </motion.p>
+            )}
 
             <button
               type="submit"
-              disabled={!form.name.trim()}
+              disabled={!form.email.trim() || !form.password.trim() || loading}
               className="btn-sunset w-full rounded-2xl py-3.5 inline-flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Continuar <ArrowRight className="h-4 w-4" />
+              {loading ? (
+                <span className="h-4 w-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+              ) : (
+                <>
+                  Entrar <ArrowRight className="h-4 w-4" />
+                </>
+              )}
             </button>
-            <p className="text-center text-xs text-muted-foreground">
-              Tu info se guarda solo para personalizar tus planes.
-            </p>
 
             <div className="text-center pt-1">
-              <span className="text-xs text-muted-foreground">¿Ya tienes cuenta? </span>
+              <span className="text-xs text-muted-foreground">¿No tienes cuenta? </span>
               <Link
-                to="/login"
+                to="/registro"
                 className="text-xs text-[var(--sunset)] hover:underline font-medium"
               >
-                Inicia sesión
+                Regístrate gratis
               </Link>
             </div>
           </form>

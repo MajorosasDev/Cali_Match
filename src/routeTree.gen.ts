@@ -13,6 +13,7 @@ import { Route as TelegramRouteImport } from './routes/telegram'
 import { Route as RegistroRouteImport } from './routes/registro'
 import { Route as Personal_landingRouteImport } from './routes/personal_landing'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as LandingRouteImport } from './routes/landing'
 import { Route as BienvenidaRouteImport } from './routes/bienvenida'
 import { Route as IndexRouteImport } from './routes/index'
@@ -39,6 +40,11 @@ const Personal_landingRoute = Personal_landingRouteImport.update({
 const OnboardingRoute = OnboardingRouteImport.update({
   id: '/onboarding',
   path: '/onboarding',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LandingRoute = LandingRouteImport.update({
@@ -81,6 +87,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/bienvenida': typeof BienvenidaRoute
   '/landing': typeof LandingRoute
+  '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/personal_landing': typeof Personal_landingRoute
   '/registro': typeof RegistroRoute
@@ -94,6 +101,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/bienvenida': typeof BienvenidaRoute
   '/landing': typeof LandingRoute
+  '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/personal_landing': typeof Personal_landingRoute
   '/registro': typeof RegistroRoute
@@ -108,6 +116,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/bienvenida': typeof BienvenidaRoute
   '/landing': typeof LandingRoute
+  '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/personal_landing': typeof Personal_landingRoute
   '/registro': typeof RegistroRoute
@@ -123,6 +132,7 @@ export interface FileRouteTypes {
     | '/'
     | '/bienvenida'
     | '/landing'
+    | '/login'
     | '/onboarding'
     | '/personal_landing'
     | '/registro'
@@ -136,6 +146,7 @@ export interface FileRouteTypes {
     | '/'
     | '/bienvenida'
     | '/landing'
+    | '/login'
     | '/onboarding'
     | '/personal_landing'
     | '/registro'
@@ -149,6 +160,7 @@ export interface FileRouteTypes {
     | '/'
     | '/bienvenida'
     | '/landing'
+    | '/login'
     | '/onboarding'
     | '/personal_landing'
     | '/registro'
@@ -163,6 +175,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BienvenidaRoute: typeof BienvenidaRoute
   LandingRoute: typeof LandingRoute
+  LoginRoute: typeof LoginRoute
   OnboardingRoute: typeof OnboardingRoute
   Personal_landingRoute: typeof Personal_landingRoute
   RegistroRoute: typeof RegistroRoute
@@ -201,6 +214,13 @@ declare module '@tanstack/react-router' {
       path: '/onboarding'
       fullPath: '/onboarding'
       preLoaderRoute: typeof OnboardingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/landing': {
@@ -259,6 +279,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BienvenidaRoute: BienvenidaRoute,
   LandingRoute: LandingRoute,
+  LoginRoute: LoginRoute,
   OnboardingRoute: OnboardingRoute,
   Personal_landingRoute: Personal_landingRoute,
   RegistroRoute: RegistroRoute,
