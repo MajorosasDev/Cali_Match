@@ -7,9 +7,9 @@ export type Distancia = "cerca" | "medio" | "lejos";
 export interface Profile {
   name: string;
   email?: string;
+  password?: string;
   phone?: string;
-  instagram?: string;
-  age?: string;
+  birthdate?: string;
 }
 
 export interface OnboardingAnswers {

@@ -13,7 +13,13 @@ export const Route = createFileRoute("/registro")({
 
 function Registro() {
   const navigate = useNavigate();
-  const [form, setForm] = useState({ name: "", email: "", phone: "", instagram: "", age: "" });
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    password: "",
+    phone: "",
+    birthdate: "",
+  });
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,7 +33,10 @@ function Registro() {
       <GlowBg />
       <header className="px-5 py-5 flex items-center justify-between">
         <Logo />
-        <Link to="/" className="text-sm text-muted-foreground inline-flex items-center gap-1 hover:text-foreground transition">
+        <Link
+          to="/"
+          className="text-sm text-muted-foreground inline-flex items-center gap-1 hover:text-foreground transition"
+        >
           <ArrowLeft className="h-4 w-4" /> Volver
         </Link>
       </header>
@@ -39,11 +48,15 @@ function Registro() {
           className="w-full max-w-md"
         >
           <div className="text-center mb-7">
-            <p className="text-xs tracking-[0.2em] text-[var(--sunset)] font-semibold">PASO 1 DE 3</p>
+            <p className="text-xs tracking-[0.2em] text-[var(--sunset)] font-semibold">
+              PASO 1 DE 3
+            </p>
             <h1 className="mt-3 text-3xl md:text-4xl font-extrabold">
               Primero, creemos <span className="text-gradient-sunset">tu perfil ✨</span>
             </h1>
-            <p className="mt-2 text-muted-foreground text-sm">Solo toma unos segundos para personalizar tu experiencia.</p>
+            <p className="mt-2 text-muted-foreground text-sm">
+              Solo toma unos segundos para personalizar tu experiencia.
+            </p>
           </div>
 
           <form onSubmit={submit} className="glass rounded-3xl p-6 space-y-4 relative">
@@ -58,6 +71,7 @@ function Registro() {
                 autoFocus
               />
             </Field>
+
             <Field label="Correo electrónico">
               <input
                 type="email"
@@ -67,28 +81,32 @@ function Registro() {
                 className="cg-input"
               />
             </Field>
-            <Field label="Teléfono">
+
+            <Field label="Contraseña">
               <input
-                value={form.phone}
-                onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                placeholder="+57 300 000 0000"
+                type="password"
+                value={form.password}
+                onChange={(e) => setForm({ ...form, password: e.target.value })}
+                placeholder="Mínimo 6 caracteres"
                 className="cg-input"
               />
             </Field>
+
             <div className="grid grid-cols-2 gap-3">
-              <Field label="Instagram (opcional)">
+              <Field label="Celular">
                 <input
-                  value={form.instagram}
-                  onChange={(e) => setForm({ ...form, instagram: e.target.value })}
-                  placeholder="@usuario"
+                  value={form.phone}
+                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                  placeholder="+57 300 000 0000"
                   className="cg-input"
                 />
               </Field>
-              <Field label="Edad (opcional)">
+
+              <Field label="Fecha de nacimiento">
                 <input
-                  value={form.age}
-                  onChange={(e) => setForm({ ...form, age: e.target.value })}
-                  placeholder="25"
+                  type="date"
+                  value={form.birthdate}
+                  onChange={(e) => setForm({ ...form, birthdate: e.target.value })}
                   className="cg-input"
                 />
               </Field>
@@ -101,7 +119,9 @@ function Registro() {
             >
               Continuar <ArrowRight className="h-4 w-4" />
             </button>
-            <p className="text-center text-xs text-muted-foreground">Tu info se guarda solo para personalizar tus planes.</p>
+            <p className="text-center text-xs text-muted-foreground">
+              Tu info se guarda solo para personalizar tus planes.
+            </p>
           </form>
         </motion.div>
       </main>
@@ -128,7 +148,15 @@ function Registro() {
   );
 }
 
-function Field({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) {
+function Field({
+  label,
+  required,
+  children,
+}: {
+  label: string;
+  required?: boolean;
+  children: React.ReactNode;
+}) {
   return (
     <label className="block">
       <span className="block text-xs font-medium text-muted-foreground mb-1.5">
