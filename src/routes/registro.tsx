@@ -1,10 +1,11 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { motion } from "motion/react";
 import { useState } from "react";
-import { ArrowRight, ArrowLeft } from "lucide-react";
+import { ArrowRight, ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { GlowBg } from "@/components/GlowBg";
 import { Logo } from "@/components/Logo";
 import { saveProfile } from "@/lib/parche-store";
+import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/registro")({
   head: () => ({ meta: [{ title: "Crea tu perfil — CaliGuide" }] }),
@@ -20,12 +21,65 @@ function Registro() {
     phone: "",
     birthdate: "",
   });
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const submit = (e: React.FormEvent) => {
+  const canSubmit =
+    form.name.trim() &&
+    form.email.trim() &&
+    form.password.length >= 6 &&
+    form.phone.trim() &&
+    form.birthdate;
+
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.name.trim()) return;
-    saveProfile(form);
-    navigate({ to: "/onboarding" });
+    if (!canSubmit) return;
+    setError("");
+    setLoading(true);
+
+    try {
+      // Verificar si el correo ya existe
+      const { data: existing } = await supabase
+        .from("usuarios")
+        .select("id")
+        .eq("email", form.email.trim())
+        .maybeSingle();
+
+      if (existing) {
+        setError("Ya existe una cuenta con ese correo. ¿Quieres iniciar sesión?");
+        setLoading(false);
+        return;
+      }
+
+      // Insertar usuario en Supabase
+      const { error: insertError } = await supabase.from("usuarios").insert({
+        nombre: form.name.trim(),
+        email: form.email.trim(),
+        password: form.password,
+        celular: form.phone.trim(),
+        fecha_nacimiento: form.birthdate,
+      });
+
+      if (insertError) throw insertError;
+
+      // Guardar en localStorage para uso local durante la sesión
+      saveProfile({
+        name: form.name.trim(),
+        email: form.email.trim(),
+        password: form.password,
+        phone: form.phone.trim(),
+        birthdate: form.birthdate,
+      });
+
+      navigate({ to: "/onboarding" });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (err: any) {
+      setError("Ocurrió un error al crear tu cuenta. Intenta de nuevo.");
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -83,13 +137,22 @@ function Registro() {
             </Field>
 
             <Field label="Contraseña" required>
-              <input
-                type="password"
-                value={form.password}
-                onChange={(e) => setForm({ ...form, password: e.target.value })}
-                placeholder="Mínimo 6 caracteres"
-                className="cg-input"
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={form.password}
+                  onChange={(e) => setForm({ ...form, password: e.target.value })}
+                  placeholder="Mínimo 6 caracteres"
+                  className="cg-input pr-11"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition"
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
             </Field>
 
             <div className="grid grid-cols-2 gap-3">
@@ -101,7 +164,6 @@ function Registro() {
                   className="cg-input"
                 />
               </Field>
-
               <Field label="Fecha de nacimiento" required>
                 <input
                   type="date"
@@ -112,13 +174,35 @@ function Registro() {
               </Field>
             </div>
 
+            {error && (
+              <motion.p
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-xs text-rose-400 bg-rose-500/10 border border-rose-500/20 rounded-xl px-4 py-2.5"
+              >
+                {error}{" "}
+                {error.includes("iniciar sesión") && (
+                  <Link to="/login" className="underline font-medium">
+                    Ir al login
+                  </Link>
+                )}
+              </motion.p>
+            )}
+
             <button
               type="submit"
-              disabled={!form.name.trim()}
+              disabled={!canSubmit || loading}
               className="btn-sunset w-full rounded-2xl py-3.5 inline-flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Continuar <ArrowRight className="h-4 w-4" />
+              {loading ? (
+                <span className="h-4 w-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+              ) : (
+                <>
+                  Continuar <ArrowRight className="h-4 w-4" />
+                </>
+              )}
             </button>
+
             <p className="text-center text-xs text-muted-foreground">
               Tu info se guarda solo para personalizar tus planes.
             </p>

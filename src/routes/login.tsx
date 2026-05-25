@@ -4,7 +4,8 @@ import { useState } from "react";
 import { ArrowRight, ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { GlowBg } from "@/components/GlowBg";
 import { Logo } from "@/components/Logo";
-import { getProfile } from "@/lib/parche-store";
+import { saveProfile } from "@/lib/parche-store";
+import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/login")({
   head: () => ({ meta: [{ title: "Iniciar sesión — CaliGuide" }] }),
@@ -18,7 +19,7 @@ function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
@@ -29,31 +30,45 @@ function Login() {
 
     setLoading(true);
 
-    // Simula validación contra el perfil guardado en localStorage
-    setTimeout(() => {
-      const profile = getProfile();
+    try {
+      // Buscar usuario por email
+      const { data: usuario, error: fetchError } = await supabase
+        .from("usuarios")
+        .select("*")
+        .eq("email", form.email.trim())
+        .maybeSingle();
 
-      if (!profile) {
+      if (fetchError) throw fetchError;
+
+      if (!usuario) {
         setError("No encontramos una cuenta con ese correo. ¿Ya te registraste?");
         setLoading(false);
         return;
       }
 
-      if (profile.email !== form.email.trim()) {
+      if (usuario.password !== form.password) {
         setError("Correo o contraseña incorrectos.");
         setLoading(false);
         return;
       }
 
-      if (profile.password !== form.password) {
-        setError("Correo o contraseña incorrectos.");
-        setLoading(false);
-        return;
-      }
+      // Login exitoso — restaurar perfil en localStorage para la sesión
+      saveProfile({
+        name: usuario.nombre,
+        email: usuario.email,
+        password: usuario.password,
+        phone: usuario.celular ?? "",
+        birthdate: usuario.fecha_nacimiento ?? "",
+      });
 
-      // Login exitoso
       navigate({ to: "/landing" });
-    }, 800);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (err: any) {
+      setError("Ocurrió un error. Intenta de nuevo.");
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -121,14 +136,18 @@ function Login() {
               </div>
             </Field>
 
-            {/* Error */}
             {error && (
               <motion.p
                 initial={{ opacity: 0, y: -4 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="text-xs text-rose-400 bg-rose-500/10 border border-rose-500/20 rounded-xl px-4 py-2.5"
               >
-                {error}
+                {error}{" "}
+                {error.includes("registraste") && (
+                  <Link to="/registro" className="underline font-medium">
+                    Crear cuenta
+                  </Link>
+                )}
               </motion.p>
             )}
 
