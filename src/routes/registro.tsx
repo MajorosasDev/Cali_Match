@@ -122,6 +122,16 @@ function Registro() {
             <p className="text-center text-xs text-muted-foreground">
               Tu info se guarda solo para personalizar tus planes.
             </p>
+
+            <div className="text-center pt-1">
+              <span className="text-xs text-muted-foreground">¿Ya tienes cuenta? </span>
+              <Link
+                to="/landing"
+                className="text-xs text-[var(--sunset)] hover:underline font-medium"
+              >
+                Inicia sesión
+              </Link>
+            </div>
           </form>
         </motion.div>
       </main>
