@@ -48,6 +48,7 @@ const PROFILE_KEY = "cg.profile";
 const ONB_KEY = "cg.onboarding";
 const PARCHE_KEY = "cg.parche";
 const PARCHES_KEY = "cg.parches";
+const SESSION_KEY = "cg.session.email";
 
 const safeWindow = () => typeof window !== "undefined";
 
@@ -59,6 +60,23 @@ export const getProfile = (): Profile | null => {
   return raw ? JSON.parse(raw) : null;
 };
 export const clearProfile = () => safeWindow() && localStorage.removeItem(PROFILE_KEY);
+
+// Sesión ligera: guarda el id UUID y email del usuario activo
+export const saveSession = (id: string, email: string) => {
+  if (!safeWindow()) return;
+  localStorage.setItem(SESSION_KEY, id);
+  localStorage.setItem(SESSION_KEY + ".email", email);
+};
+export const getSessionId = (): string | null =>
+  safeWindow() ? localStorage.getItem(SESSION_KEY) : null;
+export const getSessionEmail = (): string | null =>
+  safeWindow() ? localStorage.getItem(SESSION_KEY + ".email") : null;
+export const clearSession = () => {
+  if (!safeWindow()) return;
+  localStorage.removeItem(SESSION_KEY);
+  localStorage.removeItem(SESSION_KEY + ".email");
+  localStorage.removeItem(PROFILE_KEY);
+};
 
 export const saveOnboarding = (a: OnboardingAnswers) =>
   safeWindow() && localStorage.setItem(ONB_KEY, JSON.stringify(a));

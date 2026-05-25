@@ -4,7 +4,7 @@ import { useState } from "react";
 import { ArrowRight, ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { GlowBg } from "@/components/GlowBg";
 import { Logo } from "@/components/Logo";
-import { saveProfile } from "@/lib/parche-store";
+import { saveProfile, saveSession } from "@/lib/parche-store";
 import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/login")({
@@ -52,7 +52,8 @@ function Login() {
         return;
       }
 
-      // Login exitoso — restaurar perfil en localStorage para la sesión
+      // Login exitoso — guardar id + email de sesión en localStorage
+      saveSession(usuario.id, usuario.email);
       saveProfile({
         name: usuario.nombre,
         email: usuario.email,

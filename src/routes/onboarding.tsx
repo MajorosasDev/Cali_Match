@@ -6,10 +6,12 @@ import { GlowBg } from "@/components/GlowBg";
 import { Logo } from "@/components/Logo";
 import {
   saveOnboarding,
+  getSessionId,
   type OnboardingAnswers,
   type Horario,
   type Distancia,
 } from "@/lib/parche-store";
+import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/onboarding")({
   head: () => ({ meta: [{ title: "Tu vibra — CaliGuide" }] }),
@@ -53,9 +55,33 @@ function Onboarding() {
   };
   const prev = () => step > 0 && setStep(step - 1);
 
-  const finish = () => {
-    saveOnboarding(answers);
+  const finish = async () => {
+    saveOnboarding(answers); // respaldo local
     setLoading(true);
+
+    // Guardar onboarding en Supabase usando el id UUID de sesión
+    const userId = getSessionId();
+    if (userId) {
+      const { error } = await supabase
+        .from("usuarios")
+        .update({
+          experiencias: answers.experiencias ?? [],
+          budget: answers.budget ?? null,
+          distancia: answers.distance ?? null,
+          ambiente: answers.ambiente ?? [],
+          horario: answers.horario ?? null,
+        })
+        .eq("id", userId);
+
+      if (error) {
+        console.error("[Onboarding] Error guardando en Supabase:", error);
+      } else {
+        console.log("[Onboarding] Guardado exitoso para userId:", userId);
+      }
+    } else {
+      console.warn("[Onboarding] No hay userId en sesión — onboarding solo guardado local");
+    }
+
     setTimeout(() => navigate({ to: "/bienvenida" }), 2200);
   };
 

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { ArrowRight, ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { GlowBg } from "@/components/GlowBg";
 import { Logo } from "@/components/Logo";
-import { saveProfile } from "@/lib/parche-store";
+import { saveProfile, saveSession } from "@/lib/parche-store";
 import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/registro")({
@@ -52,18 +52,23 @@ function Registro() {
         return;
       }
 
-      // Insertar usuario en Supabase
-      const { error: insertError } = await supabase.from("usuarios").insert({
-        nombre: form.name.trim(),
-        email: form.email.trim(),
-        password: form.password,
-        celular: form.phone.trim(),
-        fecha_nacimiento: form.birthdate,
-      });
+      // Insertar usuario en Supabase y capturar el id generado
+      const { data: inserted, error: insertError } = await supabase
+        .from("usuarios")
+        .insert({
+          nombre: form.name.trim(),
+          email: form.email.trim(),
+          password: form.password,
+          celular: form.phone.trim(),
+          fecha_nacimiento: form.birthdate,
+        })
+        .select("id")
+        .single();
 
       if (insertError) throw insertError;
 
-      // Guardar en localStorage para uso local durante la sesión
+      // Guardar id + email en sesión para que onboarding pueda hacer el update
+      saveSession(inserted.id, form.email.trim());
       saveProfile({
         name: form.name.trim(),
         email: form.email.trim(),

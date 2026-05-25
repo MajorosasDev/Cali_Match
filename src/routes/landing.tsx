@@ -5,27 +5,53 @@ import { ArrowRight, Sparkles, Users, Plus, LogOut, Check, Clock, Heart, Star } 
 import { GlowBg } from "@/components/GlowBg";
 import { Logo } from "@/components/Logo";
 import {
-  getProfile,
   getParches,
-  clearProfile,
+  clearSession,
+  getSessionId,
+  getSessionEmail,
   type Profile,
   type Parche,
 } from "@/lib/parche-store";
+import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/landing")({
   head: () => ({ meta: [{ title: "CaliGuide — Planes para tu parche en Cali" }] }),
   component: LandingSwitch,
 });
 
-// ─── Switch: detecta si hay sesión ───────────────────────────────────────────
+// ─── Switch: detecta si hay sesión y trae perfil desde Supabase ──────────────
 function LandingSwitch() {
   const [profile, setProfile] = useState<Profile | null | undefined>(undefined);
   const [parches, setParches] = useState<Parche[]>([]);
 
   useEffect(() => {
-    const p = getProfile();
-    setProfile(p ?? null);
-    if (p) setParches(getParches());
+    const userId = getSessionId();
+    if (!userId) {
+      setProfile(null);
+      return;
+    }
+
+    // Traer datos frescos de Supabase con el id de sesión
+    supabase
+      .from("usuarios")
+      .select("id, nombre, email, celular, fecha_nacimiento")
+      .eq("id", userId)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data) {
+          setProfile({
+            name: data.nombre,
+            email: data.email,
+            phone: data.celular,
+            birthdate: data.fecha_nacimiento,
+          });
+          setParches(getParches());
+        } else {
+          // id no existe en BD → limpiar sesión
+          clearSession();
+          setProfile(null);
+        }
+      });
   }, []);
 
   if (profile === undefined) {
@@ -285,7 +311,7 @@ function PersonalLanding({ profile, parches }: { profile: Profile; parches: Parc
   const firstName = profile.name?.split(" ")[0];
 
   const logout = () => {
-    clearProfile();
+    clearSession();
     navigate({ to: "/landing" });
   };
 
