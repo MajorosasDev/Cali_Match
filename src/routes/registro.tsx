@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { motion } from "motion/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowRight, ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { GlowBg } from "@/components/GlowBg";
 import { Logo } from "@/components/Logo";
@@ -24,6 +24,17 @@ function Registro() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [cooldown, setCooldown] = useState(0);
+
+  useEffect(() => {
+    if (!cooldown) return;
+
+    const timer = window.setInterval(() => {
+      setCooldown((seconds) => Math.max(seconds - 1, 0));
+    }, 1000);
+
+    return () => window.clearInterval(timer);
+  }, [cooldown]);
 
   const canSubmit =
     form.name.trim() &&
@@ -35,27 +46,48 @@ function Registro() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!canSubmit) return;
+    if (cooldown > 0) {
+      setError(`Espera ${cooldown} segundos antes de volver a intentar.`);
+      return;
+    }
+
     setError("");
     setLoading(true);
 
     try {
-      // Verificar si el correo ya existe
-      const { data: existing } = await supabase
-        .from("usuarios")
-        .select("id")
-        .eq("email", form.email.trim())
-        .maybeSingle();
+      const email = form.email.trim().toLowerCase();
 
-      if (existing) {
-        setError("Ya existe una cuenta con ese correo. ¿Quieres iniciar sesión?");
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        setError("Por favor ingresa un correo válido.");
         setLoading(false);
         return;
       }
 
-      // Insertar usuario en Supabase y capturar el id generado
+      console.debug("Registrando email:", JSON.stringify(email));
+
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email,
+        password: form.password,
+      });
+
+      if (authError) {
+        if (authError.message?.includes("rate limit")) {
+          setCooldown(30);
+        }
+        throw authError;
+      }
+
+      if (!authData?.user?.id) {
+        setError("No se pudo crear la cuenta. Intenta de nuevo.");
+        setLoading(false);
+        return;
+      }
+
+      const userId = authData.user.id;
       const { data: inserted, error: insertError } = await supabase
         .from("usuarios")
         .insert({
+          id: userId,
           nombre: form.name.trim(),
           email: form.email.trim(),
           password: form.password,
@@ -65,10 +97,12 @@ function Registro() {
         .select("id")
         .single();
 
-      if (insertError) throw insertError;
+      if (insertError) {
+        await supabase.auth.signOut();
+        throw insertError;
+      }
 
-      // Guardar id + email en sesión para que onboarding pueda hacer el update
-      saveSession(inserted.id, form.email.trim());
+      saveSession(userId, form.email.trim());
       saveProfile({
         name: form.name.trim(),
         email: form.email.trim(),
@@ -80,7 +114,13 @@ function Registro() {
       navigate({ to: "/onboarding" });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
-      setError("Ocurrió un error al crear tu cuenta. Intenta de nuevo.");
+      if (err?.message?.includes("rate limit")) {
+        setError(
+          "El registro está limitado por exceso de intentos. Intenta de nuevo en 30 segundos."
+        );
+      } else {
+        setError(err.message ?? "Ocurrió un error al crear tu cuenta. Intenta de nuevo.");
+      }
       console.error(err);
     } finally {
       setLoading(false);
@@ -196,7 +236,7 @@ function Registro() {
 
             <button
               type="submit"
-              disabled={!canSubmit || loading}
+              disabled={!canSubmit || loading || cooldown > 0}
               className="btn-sunset w-full rounded-2xl py-3.5 inline-flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (

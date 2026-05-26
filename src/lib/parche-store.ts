@@ -13,7 +13,7 @@ export interface Profile {
 
 export interface OnboardingAnswers {
   budget?: string;
-  distance?: Distancia;
+  distancia?: Distancia;
   ambiente?: string[];
   horario?: Horario;
   experiencias?: string[];
@@ -48,7 +48,8 @@ const PROFILE_KEY = "cg.profile";
 const ONB_KEY = "cg.onboarding";
 const PARCHE_KEY = "cg.parche";
 const PARCHES_KEY = "cg.parches";
-const SESSION_KEY = "cg.session.email";
+const SESSION_KEY = "cg.session";
+const LEGACY_SESSION_KEY = "cg.session.email";
 
 const safeWindow = () => typeof window !== "undefined";
 
@@ -67,14 +68,23 @@ export const saveSession = (id: string, email: string) => {
   localStorage.setItem(SESSION_KEY, id);
   localStorage.setItem(SESSION_KEY + ".email", email);
 };
-export const getSessionId = (): string | null =>
-  safeWindow() ? localStorage.getItem(SESSION_KEY) : null;
-export const getSessionEmail = (): string | null =>
-  safeWindow() ? localStorage.getItem(SESSION_KEY + ".email") : null;
+export const getSessionId = (): string | null => {
+  if (!safeWindow()) return null;
+  return localStorage.getItem(SESSION_KEY) || localStorage.getItem(LEGACY_SESSION_KEY);
+};
+export const getSessionEmail = (): string | null => {
+  if (!safeWindow()) return null;
+  return (
+    localStorage.getItem(SESSION_KEY + ".email") ||
+    localStorage.getItem(LEGACY_SESSION_KEY + ".email")
+  );
+};
 export const clearSession = () => {
   if (!safeWindow()) return;
   localStorage.removeItem(SESSION_KEY);
   localStorage.removeItem(SESSION_KEY + ".email");
+  localStorage.removeItem(LEGACY_SESSION_KEY);
+  localStorage.removeItem(LEGACY_SESSION_KEY + ".email");
   localStorage.removeItem(PROFILE_KEY);
 };
 

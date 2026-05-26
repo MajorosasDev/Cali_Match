@@ -62,16 +62,25 @@ function Onboarding() {
     // Guardar onboarding en Supabase usando el id UUID de sesión
     const userId = getSessionId();
     if (userId) {
-      const { error } = await supabase
+      const payload = {
+        experiencias: answers.experiencias,
+        budget: answers.budget,
+        distancia: answers.distancia,
+        ambiente: answers.ambiente,
+        horario: answers.horario,
+      };
+
+      console.log("PAYLOAD:", payload);
+      console.log("USER ID:", userId);
+
+      const { data, error } = await supabase
         .from("usuarios")
-        .update({
-          experiencias: answers.experiencias ?? [],
-          budget: answers.budget ?? null,
-          distancia: answers.distance ?? null,
-          ambiente: answers.ambiente ?? [],
-          horario: answers.horario ?? null,
-        })
-        .eq("id", userId);
+        .update(payload)
+        .eq("id", userId)
+        .select();
+
+      console.log("UPDATED:", data);
+      console.log("ERROR:", error);
 
       if (error) {
         console.error("[Onboarding] Error guardando en Supabase:", error);
@@ -93,7 +102,7 @@ function Onboarding() {
   const canAdvance =
     (step === 0 && (answers.experiencias?.length ?? 0) > 0) ||
     (step === 1 && answers.budget != null) ||
-    (step === 2 && answers.distance) ||
+    (step === 2 && answers.distancia) ||
     (step === 3 && (answers.ambiente?.length ?? 0) > 0) ||
     (step === 4 && answers.horario);
 
@@ -216,11 +225,11 @@ function Onboarding() {
                         { id: "lejos", label: "Donde sea", desc: "Sorpréndeme", emoji: "🚀" },
                       ] as { id: Distancia; label: string; desc: string; emoji: string }[]
                     ).map((o) => {
-                      const active = answers.distance === o.id;
+                      const active = answers.distancia === o.id;
                       return (
                         <button
                           key={o.id}
-                          onClick={() => update("distance", o.id)}
+                          onClick={() => update("distancia", o.id)}
                           className={`glass rounded-2xl p-5 flex items-center gap-4 text-left transition ${
                             active ? "ring-2 ring-[var(--sunset)] glow-orange" : "hover:bg-white/5"
                           }`}

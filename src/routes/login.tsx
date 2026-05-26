@@ -31,28 +31,32 @@ function Login() {
     setLoading(true);
 
     try {
-      // Buscar usuario por email
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email: form.email.trim(),
+        password: form.password,
+      });
+
+      if (authError) throw authError;
+      if (!authData?.user?.id) {
+        setError("No se pudo iniciar sesión. Intenta de nuevo.");
+        setLoading(false);
+        return;
+      }
+
+      const userId = authData.user.id;
       const { data: usuario, error: fetchError } = await supabase
         .from("usuarios")
         .select("*")
-        .eq("email", form.email.trim())
+        .eq("id", userId)
         .maybeSingle();
 
       if (fetchError) throw fetchError;
-
       if (!usuario) {
-        setError("No encontramos una cuenta con ese correo. ¿Ya te registraste?");
+        setError("No encontramos una cuenta asociada a este usuario.");
         setLoading(false);
         return;
       }
 
-      if (usuario.password !== form.password) {
-        setError("Correo o contraseña incorrectos.");
-        setLoading(false);
-        return;
-      }
-
-      // Login exitoso — guardar id + email de sesión en localStorage
       saveSession(usuario.id, usuario.email);
       saveProfile({
         name: usuario.nombre,
@@ -65,7 +69,7 @@ function Login() {
       navigate({ to: "/landing" });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
-      setError("Ocurrió un error. Intenta de nuevo.");
+      setError(err.message ?? "Ocurrió un error. Intenta de nuevo.");
       console.error(err);
     } finally {
       setLoading(false);

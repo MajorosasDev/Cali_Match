@@ -25,33 +25,49 @@ function LandingSwitch() {
   const [parches, setParches] = useState<Parche[]>([]);
 
   useEffect(() => {
-    const userId = getSessionId();
-    if (!userId) {
-      setProfile(null);
-      return;
-    }
+    const loadProfile = async () => {
+      const localId = getSessionId();
+      const session = await supabase.auth.getSession();
+      const authId = session?.data?.session?.user?.id ?? null;
+      const userId = localId || authId;
 
-    // Traer datos frescos de Supabase con el id de sesión
-    supabase
-      .from("usuarios")
-      .select("id, nombre, email, celular, fecha_nacimiento")
-      .eq("id", userId)
-      .maybeSingle()
-      .then(({ data }) => {
-        if (data) {
-          setProfile({
-            name: data.nombre,
-            email: data.email,
-            phone: data.celular,
-            birthdate: data.fecha_nacimiento,
-          });
-          setParches(getParches());
-        } else {
-          // id no existe en BD → limpiar sesión
-          clearSession();
-          setProfile(null);
-        }
-      });
+      if (!userId) {
+        setProfile(null);
+        return;
+      }
+
+      if (authId && !localId) {
+        saveSession(authId, session?.data?.session?.user?.email ?? "");
+      }
+
+      const { data, error } = await supabase
+        .from("usuarios")
+        .select("id, nombre, email, celular, fecha_nacimiento")
+        .eq("id", userId)
+        .maybeSingle();
+
+      if (error) {
+        console.error(error);
+        clearSession();
+        setProfile(null);
+        return;
+      }
+
+      if (data) {
+        setProfile({
+          name: data.nombre,
+          email: data.email,
+          phone: data.celular,
+          birthdate: data.fecha_nacimiento,
+        });
+        setParches(getParches());
+      } else {
+        clearSession();
+        setProfile(null);
+      }
+    };
+
+    loadProfile();
   }, []);
 
   if (profile === undefined) {
