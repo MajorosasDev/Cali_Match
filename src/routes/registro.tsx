@@ -28,11 +28,9 @@ function Registro() {
 
   useEffect(() => {
     if (!cooldown) return;
-
     const timer = window.setInterval(() => {
-      setCooldown((seconds) => Math.max(seconds - 1, 0));
+      setCooldown((s) => Math.max(s - 1, 0));
     }, 1000);
-
     return () => window.clearInterval(timer);
   }, [cooldown]);
 
@@ -63,17 +61,21 @@ function Registro() {
         return;
       }
 
-      console.debug("Registrando email:", JSON.stringify(email));
-
+      // 1. Crear usuario en Supabase Auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password: form.password,
+        options: {
+          data: {
+            nombre: form.name.trim(),
+            celular: form.phone.trim(),
+            fecha_nacimiento: form.birthdate,
+          },
+        },
       });
 
       if (authError) {
-        if (authError.message?.includes("rate limit")) {
-          setCooldown(30);
-        }
+        if (authError.message?.includes("rate limit")) setCooldown(30);
         throw authError;
       }
 
@@ -84,16 +86,12 @@ function Registro() {
       }
 
       const userId = authData.user.id;
-      const { data: inserted, error: insertError } = await supabase
+
+      // 2. Insertar en tabla usuarios solo los campos del onboarding
+      //    (nombre, email, celular, fecha_nacimiento quedan en Auth)
+      const { error: insertError } = await supabase
         .from("usuarios")
-        .insert({
-          id: userId,
-          nombre: form.name.trim(),
-          email: form.email.trim(),
-          password: form.password,
-          celular: form.phone.trim(),
-          fecha_nacimiento: form.birthdate,
-        })
+        .insert({ id: userId })
         .select("id")
         .single();
 
@@ -102,10 +100,11 @@ function Registro() {
         throw insertError;
       }
 
-      saveSession(userId, form.email.trim());
+      // 3. Guardar sesión y perfil local para la UI
+      saveSession(userId, email);
       saveProfile({
         name: form.name.trim(),
-        email: form.email.trim(),
+        email,
         password: form.password,
         phone: form.phone.trim(),
         birthdate: form.birthdate,
@@ -115,9 +114,7 @@ function Registro() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       if (err?.message?.includes("rate limit")) {
-        setError(
-          "El registro está limitado por exceso de intentos. Intenta de nuevo en 30 segundos."
-        );
+        setError("Demasiados intentos. Espera 30 segundos e intenta de nuevo.");
       } else {
         setError(err.message ?? "Ocurrió un error al crear tu cuenta. Intenta de nuevo.");
       }
@@ -241,6 +238,8 @@ function Registro() {
             >
               {loading ? (
                 <span className="h-4 w-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+              ) : cooldown > 0 ? (
+                `Espera ${cooldown}s...`
               ) : (
                 <>
                   Continuar <ArrowRight className="h-4 w-4" />
