@@ -13,7 +13,7 @@ export interface Profile {
 
 export interface OnboardingAnswers {
   budget?: string;
-  distancia?: Distancia;
+  // distancia?: Distancia;
   ambiente?: string[];
   horario?: Horario;
   experiencias?: string[];

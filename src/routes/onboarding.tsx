@@ -9,7 +9,6 @@ import {
   getSessionId,
   type OnboardingAnswers,
   type Horario,
-  type Distancia,
 } from "@/lib/parche-store";
 import { supabase } from "@/lib/supabase";
 
@@ -46,7 +45,7 @@ function Onboarding() {
   const [answers, setAnswers] = useState<OnboardingAnswers>({});
   const [loading, setLoading] = useState(false);
 
-  const totalSteps = 5;
+  const totalSteps = 4;
   const progress = ((step + 1) / totalSteps) * 100;
 
   const next = () => {
@@ -56,39 +55,21 @@ function Onboarding() {
   const prev = () => step > 0 && setStep(step - 1);
 
   const finish = async () => {
-    saveOnboarding(answers); // respaldo local
+    saveOnboarding(answers);
     setLoading(true);
 
-    // Guardar onboarding en Supabase usando el id UUID de sesión
     const userId = getSessionId();
     if (userId) {
       const payload = {
         experiencias: answers.experiencias,
         budget: answers.budget,
-        distancia: answers.distancia,
         ambiente: answers.ambiente,
         horario: answers.horario,
       };
 
-      console.log("PAYLOAD:", payload);
-      console.log("USER ID:", userId);
+      const { error } = await supabase.from("usuarios").update(payload).eq("id", userId);
 
-      const { data, error } = await supabase
-        .from("usuarios")
-        .update(payload)
-        .eq("id", userId)
-        .select();
-
-      console.log("UPDATED:", data);
-      console.log("ERROR:", error);
-
-      if (error) {
-        console.error("[Onboarding] Error guardando en Supabase:", error);
-      } else {
-        console.log("[Onboarding] Guardado exitoso para userId:", userId);
-      }
-    } else {
-      console.warn("[Onboarding] No hay userId en sesión — onboarding solo guardado local");
+      if (error) console.error("[Onboarding] Error guardando en Supabase:", error);
     }
 
     setTimeout(() => navigate({ to: "/bienvenida" }), 2200);
@@ -102,9 +83,8 @@ function Onboarding() {
   const canAdvance =
     (step === 0 && (answers.experiencias?.length ?? 0) > 0) ||
     (step === 1 && answers.budget != null) ||
-    (step === 2 && answers.distancia) ||
-    (step === 3 && (answers.ambiente?.length ?? 0) > 0) ||
-    (step === 4 && answers.horario);
+    (step === 2 && (answers.ambiente?.length ?? 0) > 0) ||
+    (step === 3 && answers.horario);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -116,7 +96,6 @@ function Onboarding() {
         </Link>
       </header>
 
-      {/* Progress */}
       <div className="px-5">
         <div className="max-w-2xl mx-auto">
           <div className="flex items-center justify-between text-xs text-muted-foreground mb-2">
@@ -145,6 +124,7 @@ function Onboarding() {
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.3 }}
             >
+              {/* STEP 0 — Experiencias */}
               {step === 0 && (
                 <StepShell
                   title="¿Qué tipo de experiencias disfrutas más?"
@@ -180,6 +160,7 @@ function Onboarding() {
                 </StepShell>
               )}
 
+              {/* STEP 1 — Presupuesto */}
               {step === 1 && (
                 <StepShell
                   title="¿Cuál es tu presupuesto aproximado para salir?"
@@ -212,41 +193,8 @@ function Onboarding() {
                 </StepShell>
               )}
 
+              {/* STEP 2 — Ambiente */}
               {step === 2 && (
-                <StepShell
-                  title="¿Qué tan lejos quieres moverte?"
-                  subtitle="Ubicación importa para tu plan."
-                >
-                  <div className="grid gap-3 mt-6">
-                    {(
-                      [
-                        { id: "cerca", label: "Cerca", desc: "A 10 min de mí", emoji: "🏠" },
-                        { id: "medio", label: "Medio", desc: "Por la ciudad", emoji: "🚖" },
-                        { id: "lejos", label: "Donde sea", desc: "Sorpréndeme", emoji: "🚀" },
-                      ] as { id: Distancia; label: string; desc: string; emoji: string }[]
-                    ).map((o) => {
-                      const active = answers.distancia === o.id;
-                      return (
-                        <button
-                          key={o.id}
-                          onClick={() => update("distancia", o.id)}
-                          className={`glass rounded-2xl p-5 flex items-center gap-4 text-left transition ${
-                            active ? "ring-2 ring-[var(--sunset)] glow-orange" : "hover:bg-white/5"
-                          }`}
-                        >
-                          <span className="text-3xl">{o.emoji}</span>
-                          <div>
-                            <div className="font-bold">{o.label}</div>
-                            <div className="text-xs text-muted-foreground">{o.desc}</div>
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </StepShell>
-              )}
-
-              {step === 3 && (
                 <StepShell title="¿Qué ambiente buscas?" subtitle="Elige todos los que quieras.">
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-6">
                     {ambientes.map((a) => {
@@ -278,7 +226,8 @@ function Onboarding() {
                 </StepShell>
               )}
 
-              {step === 4 && (
+              {/* STEP 3 — Horario */}
+              {step === 3 && (
                 <StepShell
                   title="¿A qué hora sueles salir?"
                   subtitle="El horario marca todo el plan."
@@ -286,9 +235,9 @@ function Onboarding() {
                   <div className="grid grid-cols-3 gap-3 mt-6">
                     {(
                       [
+                        { id: "mañana", label: "Mañana", emoji: "🌞", time: "7am - 12pm" },
                         { id: "tarde", label: "Tarde", emoji: "🌤️", time: "3pm - 7pm" },
                         { id: "noche", label: "Noche", emoji: "🌙", time: "8pm - 12am" },
-                        { id: "madrugada", label: "Madrugada", emoji: "🌌", time: "12am - 5am" },
                       ] as { id: Horario; label: string; emoji: string; time: string }[]
                     ).map((o) => {
                       const active = answers.horario === o.id;
