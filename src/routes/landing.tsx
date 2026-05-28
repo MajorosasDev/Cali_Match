@@ -9,6 +9,7 @@ import {
   clearSession,
   getSessionId,
   getSessionEmail,
+  saveSession,
   type Profile,
   type Parche,
 } from "@/lib/parche-store";
@@ -19,7 +20,7 @@ export const Route = createFileRoute("/landing")({
   component: LandingSwitch,
 });
 
-// ─── Switch: detecta si hay sesión y trae perfil desde Supabase ──────────────
+// ─── Switch ───────────────────────────────────────────────────────────────────
 function LandingSwitch() {
   const [profile, setProfile] = useState<Profile | null | undefined>(undefined);
   const [parches, setParches] = useState<Parche[]>([]);
@@ -27,44 +28,28 @@ function LandingSwitch() {
   useEffect(() => {
     const loadProfile = async () => {
       const localId = getSessionId();
-      const session = await supabase.auth.getSession();
-      const authId = session?.data?.session?.user?.id ?? null;
-      const userId = localId || authId;
+      const { data: sessionData } = await supabase.auth.getSession();
+      const authUser = sessionData?.session?.user ?? null;
+      const userId = localId || authUser?.id || null;
 
       if (!userId) {
         setProfile(null);
         return;
       }
 
-      if (authId && !localId) {
-        saveSession(authId, session?.data?.session?.user?.email ?? "");
+      if (authUser && !localId) {
+        saveSession(authUser.id, authUser.email ?? "");
       }
 
-      const { data, error } = await supabase
-        .from("usuarios")
-        .select("id, nombre, email, celular, fecha_nacimiento")
-        .eq("id", userId)
-        .maybeSingle();
+      const meta = authUser?.user_metadata ?? {};
+      const nombre = meta.nombre as string | undefined;
+      const email = authUser?.email ?? getSessionEmail() ?? "";
 
-      if (error) {
-        console.error(error);
-        clearSession();
-        setProfile(null);
-        return;
-      }
-
-      if (data) {
-        setProfile({
-          name: data.nombre,
-          email: data.email,
-          phone: data.celular,
-          birthdate: data.fecha_nacimiento,
-        });
-        setParches(getParches());
-      } else {
-        clearSession();
-        setProfile(null);
-      }
+      setProfile({
+        name: nombre ?? email.split("@")[0] ?? "Usuario",
+        email,
+      });
+      setParches(getParches());
     };
 
     loadProfile();
@@ -82,7 +67,7 @@ function LandingSwitch() {
   return profile ? <PersonalLanding profile={profile} parches={parches} /> : <PublicLanding />;
 }
 
-// ─── Landing pública (sin sesión) ─────────────────────────────────────────────
+// ─── Landing pública ──────────────────────────────────────────────────────────
 const categorias = [
   "SALSA",
   "ROOFTOPS",
@@ -119,7 +104,6 @@ function PublicLanding() {
         </div>
       </header>
 
-      {/* Hero */}
       <section className="relative mx-auto max-w-7xl px-5 pt-12 md:pt-20 pb-16">
         <div className="grid md:grid-cols-2 gap-12 items-center">
           <motion.div
@@ -171,7 +155,6 @@ function PublicLanding() {
             </div>
           </motion.div>
 
-          {/* Mockup tarjetas */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -223,7 +206,6 @@ function PublicLanding() {
         </div>
       </section>
 
-      {/* Ticker */}
       <div className="border-y border-white/5 overflow-hidden py-3">
         <motion.div
           animate={{ x: [0, -1200] }}
@@ -241,7 +223,6 @@ function PublicLanding() {
         </motion.div>
       </div>
 
-      {/* Cómo funciona */}
       <section id="como" className="mx-auto max-w-7xl px-5 py-20">
         <div className="text-center mb-12">
           <p className="text-xs tracking-[0.2em] text-[var(--sunset)] font-semibold">
@@ -282,7 +263,6 @@ function PublicLanding() {
         </div>
       </section>
 
-      {/* CTA */}
       <section id="grupos" className="mx-auto max-w-7xl px-5 py-16">
         <div className="glass rounded-3xl p-10 md:p-16 text-center relative overflow-hidden">
           <div className="absolute inset-0 bg-[image:var(--gradient-glow)] opacity-30 -z-10" />
@@ -312,7 +292,7 @@ function PublicLanding() {
   );
 }
 
-// ─── Landing personalizada (con sesión) ──────────────────────────────────────
+// ─── Landing personalizada ────────────────────────────────────────────────────
 const tipoEmoji: Record<string, string> = {
   salsa: "💃",
   rooftop: "🌇",
@@ -325,10 +305,19 @@ const tipoEmoji: Record<string, string> = {
 function PersonalLanding({ profile, parches }: { profile: Profile; parches: Parche[] }) {
   const navigate = useNavigate();
   const firstName = profile.name?.split(" ")[0];
+  const [showLogout, setShowLogout] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
 
-  const logout = () => {
-    clearSession();
-    navigate({ to: "/landing" });
+  const logout = async () => {
+    setLoggingOut(true);
+    try {
+      await supabase.auth.signOut();
+    } catch (err) {
+      console.error("Error al cerrar sesión:", err);
+    } finally {
+      clearSession();
+      window.location.href = "/landing";
+    }
   };
 
   return (
@@ -354,7 +343,7 @@ function PersonalLanding({ profile, parches }: { profile: Profile; parches: Parc
               {firstName}
             </span>
             <button
-              onClick={logout}
+              onClick={() => setShowLogout(true)}
               title="Cerrar sesión"
               className="glass rounded-full h-9 w-9 grid place-items-center hover:bg-white/10 transition"
             >
@@ -364,7 +353,7 @@ function PersonalLanding({ profile, parches }: { profile: Profile; parches: Parc
         </div>
       </header>
 
-      {/* Hero personalizado */}
+      {/* Hero */}
       <section className="relative mx-auto max-w-7xl px-5 pt-12 md:pt-16 pb-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -401,7 +390,7 @@ function PersonalLanding({ profile, parches }: { profile: Profile; parches: Parc
         </motion.div>
       </section>
 
-      {/* Grupos activos */}
+      {/* Grupos */}
       <section id="mis-grupos" className="mx-auto max-w-7xl px-5 py-10">
         <div className="flex items-end justify-between flex-wrap gap-4 mb-8">
           <div>
@@ -542,6 +531,43 @@ function PersonalLanding({ profile, parches }: { profile: Profile; parches: Parc
           </span>
         </div>
       </footer>
+
+      {/* Modal confirmar logout */}
+      {showLogout && (
+        <div className="fixed inset-0 z-50 grid place-items-center px-5 bg-black/60 backdrop-blur-sm">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="glass rounded-3xl p-8 w-full max-w-sm text-center"
+          >
+            <div className="text-4xl mb-4">👋</div>
+            <h2 className="text-xl font-bold">¿Cerrar sesión?</h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Puedes volver cuando quieras con tu correo y contraseña.
+            </p>
+            <div className="mt-6 grid grid-cols-2 gap-3">
+              <button
+                onClick={() => setShowLogout(false)}
+                disabled={loggingOut}
+                className="glass rounded-2xl py-3 text-sm font-medium hover:bg-white/10 transition disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={logout}
+                disabled={loggingOut}
+                className="btn-sunset rounded-2xl py-3 text-sm font-medium inline-flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                {loggingOut ? (
+                  <span className="h-4 w-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                ) : (
+                  "Sí, salir"
+                )}
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }
