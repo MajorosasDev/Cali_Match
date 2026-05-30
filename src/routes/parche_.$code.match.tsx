@@ -7,7 +7,7 @@ import { Logo } from "@/components/Logo";
 import { getParche, type Parche } from "@/lib/parche-store";
 
 export const Route = createFileRoute("/parche_/$code/match")({
-  head: () => ({ meta: [{ title: "Compatibilidad — CaliGuide" }] }),
+  head: () => ({ meta: [{ title: "Compatibilidad — CaliMatch" }] }),
   component: Match,
 });
 
@@ -48,7 +48,11 @@ function Match() {
       <GlowBg />
       <header className="px-5 py-5 flex items-center justify-between">
         <Logo size="sm" />
-        <Link to="/parche/$code" params={{ code }} className="text-sm text-muted-foreground inline-flex items-center gap-1">
+        <Link
+          to="/parche/$code"
+          params={{ code }}
+          className="text-sm text-muted-foreground inline-flex items-center gap-1"
+        >
           <ArrowLeft className="h-4 w-4" /> Atrás
         </Link>
       </header>
@@ -56,21 +60,40 @@ function Match() {
       <main className="flex-1 px-5 py-6">
         <div className="max-w-2xl mx-auto">
           <div className="text-center">
-            <p className="text-xs tracking-[0.2em] text-[var(--sunset)] font-semibold">COMPATIBILIDAD GRUPAL</p>
+            <p className="text-xs tracking-[0.2em] text-[var(--sunset)] font-semibold">
+              COMPATIBILIDAD GRUPAL
+            </p>
             <h1 className="mt-2 text-3xl md:text-4xl font-extrabold">
-              {parche?.name ?? "Tu parche"} <span className="text-gradient-sunset">tiene química 🔥</span>
+              {parche?.name ?? "Tu parche"}{" "}
+              <span className="text-gradient-sunset">tiene química 🔥</span>
             </h1>
           </div>
 
           {/* Big match */}
-          <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="mt-8 grid place-items-center">
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="mt-8 grid place-items-center"
+          >
             <div className="relative h-56 w-56">
               <div className="absolute inset-0 rounded-full bg-[image:var(--gradient-glow)] blur-3xl opacity-80" />
               <svg viewBox="0 0 100 100" className="absolute inset-0 -rotate-90">
-                <circle cx="50" cy="50" r="44" fill="none" stroke="oklch(1 0 0 / 0.08)" strokeWidth="8" />
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="44"
+                  fill="none"
+                  stroke="oklch(1 0 0 / 0.08)"
+                  strokeWidth="8"
+                />
                 <motion.circle
-                  cx="50" cy="50" r="44" fill="none"
-                  stroke="url(#g)" strokeWidth="8" strokeLinecap="round"
+                  cx="50"
+                  cy="50"
+                  r="44"
+                  fill="none"
+                  stroke="url(#g)"
+                  strokeWidth="8"
+                  strokeLinecap="round"
                   strokeDasharray={`${(score / 100) * 276} 276`}
                 />
                 <defs>
@@ -91,11 +114,15 @@ function Match() {
 
           {/* Categories */}
           <div className="mt-8 glass rounded-3xl p-5 space-y-4">
-            <p className="text-xs tracking-[0.2em] text-[var(--sunset)] font-semibold">CATEGORÍAS FAVORITAS</p>
+            <p className="text-xs tracking-[0.2em] text-[var(--sunset)] font-semibold">
+              CATEGORÍAS FAVORITAS
+            </p>
             {cats.map((c, i) => (
               <div key={c.label}>
                 <div className="flex justify-between text-sm mb-1.5">
-                  <span className="font-medium">{c.emoji} {c.label}</span>
+                  <span className="font-medium">
+                    {c.emoji} {c.label}
+                  </span>
                   <span className="text-muted-foreground">{c.value}%</span>
                 </div>
                 <div className="h-2 rounded-full bg-white/5 overflow-hidden">
@@ -125,12 +152,15 @@ function Match() {
             ))}
           </div>
 
-          <button
-            onClick={() => navigate({ to: "/telegram" })}
+          <motion.button
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.7 }}
+            onClick={() => navigate({ to: "/landing" })}
             className="mt-7 btn-sunset w-full rounded-2xl py-3.5 inline-flex items-center justify-center gap-2"
           >
-            <Sparkles className="h-4 w-4" /> Continuar en Telegram <ArrowRight className="h-4 w-4" />
-          </button>
+            <Sparkles className="h-4 w-4" /> Ver mi landing <ArrowRight className="h-4 w-4" />
+          </motion.button>
         </div>
       </main>
     </div>

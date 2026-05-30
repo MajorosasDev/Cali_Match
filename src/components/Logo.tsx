@@ -11,7 +11,7 @@ export function Logo({ size = "md" }: { size?: "sm" | "md" | "lg" }) {
         <span className="text-[10px] font-black text-[oklch(0.16_0.02_280)]">C</span>
       </span>
       <span className={`${text} font-bold tracking-tight`}>
-        Cali<span className="text-gradient-sunset">Guide</span>
+        Cali<span className="text-gradient-sunset">Match</span>
       </span>
     </Link>
   );
