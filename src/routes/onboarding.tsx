@@ -67,7 +67,9 @@ function Onboarding() {
         horario: answers.horario,
       };
 
-      const { error } = await supabase.from("usuarios").update(payload).eq("id", userId);
+      const { error } = await supabase
+        .from("usuarios")
+        .upsert({ id: userId, ...payload }, { onConflict: "id" });
 
       if (error) console.error("[Onboarding] Error guardando en Supabase:", error);
     }
