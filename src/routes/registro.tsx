@@ -14,6 +14,11 @@ export const Route = createFileRoute("/registro")({
 
 function Registro() {
   const navigate = useNavigate();
+  const maxBirthdate = (() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 1);
+    return d.toISOString().split("T")[0];
+  })();
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -34,12 +39,16 @@ function Registro() {
     return () => window.clearInterval(timer);
   }, [cooldown]);
 
+  const phoneDigits = form.phone.replace(/\D/g, "");
+  const birthdateOk = Boolean(form.birthdate) && new Date(form.birthdate) < new Date();
+  const phoneOk = phoneDigits.length === 10;
+
   const canSubmit =
     form.name.trim() &&
     form.email.trim() &&
     form.password.length >= 6 &&
-    form.phone.trim() &&
-    form.birthdate;
+    phoneOk &&
+    birthdateOk;
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,9 +63,22 @@ function Registro() {
 
     try {
       const email = form.email.trim().toLowerCase();
+      const phoneDigits = form.phone.replace(/\D/g, "");
 
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        setError("Por favor ingresa un correo válido.");
+         setError("Por favor ingresa un correo válido.");
+         setLoading(false);
+         return;
+      }
+
+      if (phoneDigits.length !== 10) {
+        setError("El teléfono debe tener exactamente 10 dígitos.");
+        setLoading(false);
+        return;
+      }
+
+      if (!form.birthdate || new Date(form.birthdate) >= new Date()) {
+        setError("La fecha de nacimiento debe ser anterior a hoy.");
         setLoading(false);
         return;
       }
@@ -87,11 +109,20 @@ function Registro() {
 
       const userId = authData.user.id;
 
-      // 2. Insertar en tabla usuarios solo los campos del onboarding
-      //    (nombre, email, celular, fecha_nacimiento quedan en Auth)
+      // 2. Guardar el perfil en una tabla dedicada (profiles) para no mezclar
+      //    el onboarding con los datos de cuenta del usuario.
       const { error: insertError } = await supabase
-        .from("usuarios")
-        .insert({ id: userId })
+        .from("profiles")
+        .upsert(
+          {
+            id: userId,
+            nombre: form.name.trim(),
+            email,
+            celular: form.phone.trim(),
+            fecha_nacimiento: form.birthdate,
+          },
+          { onConflict: "id" }
+        )
         .select("id")
         .single();
 
@@ -201,7 +232,14 @@ function Registro() {
               <Field label="Celular" required>
                 <input
                   value={form.phone}
-                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      phone: e.target.value.replace(/\D/g, "").slice(0, 10),
+                    })
+                  }
+                  inputMode="numeric"
+                  maxLength={10}
                   placeholder="300 000 0000"
                   className="cg-input"
                 />
@@ -210,6 +248,7 @@ function Registro() {
                 <input
                   type="date"
                   value={form.birthdate}
+                  max={maxBirthdate}
                   onChange={(e) => setForm({ ...form, birthdate: e.target.value })}
                   className="cg-input"
                 />

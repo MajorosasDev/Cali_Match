@@ -44,26 +44,32 @@ function Login() {
       }
 
       const userId = authData.user.id;
-      const { data: usuario, error: fetchError } = await supabase
-        .from("usuarios")
+      const meta = authData.user.user_metadata ?? {};
+      const { data: profile, error: fetchError } = await supabase
+        .from("profiles")
         .select("*")
         .eq("id", userId)
         .maybeSingle();
 
       if (fetchError) throw fetchError;
-      if (!usuario) {
-        setError("No encontramos una cuenta asociada a este usuario.");
+      if (!profile) {
+        setError("No encontramos el perfil asociado a este usuario.");
         setLoading(false);
         return;
       }
 
-      saveSession(usuario.id, usuario.email);
+      const nombre = (meta.nombre as string | undefined) ?? profile.nombre ?? "";
+      const celular = (meta.celular as string | undefined) ?? profile.celular ?? "";
+      const fechaNacimiento =
+        (meta.fecha_nacimiento as string | undefined) ?? profile.fecha_nacimiento ?? "";
+
+      saveSession(userId, authData.user.email ?? profile.email ?? form.email.trim());
       saveProfile({
-        name: usuario.nombre,
-        email: usuario.email,
-        password: usuario.password,
-        phone: usuario.celular ?? "",
-        birthdate: usuario.fecha_nacimiento ?? "",
+        name: nombre,
+        email: authData.user.email ?? profile.email ?? form.email.trim(),
+        password: "",
+        phone: celular,
+        birthdate: fechaNacimiento,
       });
 
       navigate({ to: "/landing" });
