@@ -57,14 +57,14 @@ const IndexRoute = IndexRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const ParcheCrearRoute = ParcheCrearRouteImport.update({
-  id: '/crear',
-  path: '/crear',
-  getParentRoute: () => ParcheRoute,
+  id: '/parche/crear',
+  path: '/parche/crear',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ParcheCodeRoute = ParcheCodeRouteImport.update({
-  id: '/$code',
-  path: '/$code',
-  getParentRoute: () => ParcheRoute,
+  id: '/parche/$code',
+  path: '/parche/$code',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ParcheCodeQuizRoute = ParcheCodeQuizRouteImport.update({
   id: '/parche_/$code/quiz',
@@ -167,6 +167,8 @@ export interface RootRouteChildren {
   OnboardingRoute: typeof OnboardingRoute
   RegistroRoute: typeof RegistroRoute
   TelegramRoute: typeof TelegramRoute
+  ParcheCodeRoute: typeof ParcheCodeRoute
+  ParcheCrearRoute: typeof ParcheCrearRoute
   ParcheCodeMatchRoute: typeof ParcheCodeMatchRoute
   ParcheCodeQuizRoute: typeof ParcheCodeQuizRoute
 }
@@ -224,17 +226,17 @@ declare module '@tanstack/react-router' {
     }
     '/parche/crear': {
       id: '/parche/crear'
-      path: '/crear'
+      path: '/parche/crear'
       fullPath: '/parche/crear'
       preLoaderRoute: typeof ParcheCrearRouteImport
-      parentRoute: typeof ParcheRoute
+      parentRoute: typeof rootRouteImport
     }
     '/parche/$code': {
       id: '/parche/$code'
-      path: '/$code'
+      path: '/parche/$code'
       fullPath: '/parche/$code'
       preLoaderRoute: typeof ParcheCodeRouteImport
-      parentRoute: typeof ParcheRoute
+      parentRoute: typeof rootRouteImport
     }
     '/parche_/$code/quiz': {
       id: '/parche_/$code/quiz'
@@ -261,6 +263,8 @@ const rootRouteChildren: RootRouteChildren = {
   OnboardingRoute: OnboardingRoute,
   RegistroRoute: RegistroRoute,
   TelegramRoute: TelegramRoute,
+  ParcheCodeRoute: ParcheCodeRoute,
+  ParcheCrearRoute: ParcheCrearRoute,
   ParcheCodeMatchRoute: ParcheCodeMatchRoute,
   ParcheCodeQuizRoute: ParcheCodeQuizRoute,
 }
