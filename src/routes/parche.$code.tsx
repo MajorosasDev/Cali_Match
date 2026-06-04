@@ -130,10 +130,16 @@ function ParcheHub() {
   };
 
   const finalize = async () => {
-    if (!parche || !isAdmin || !active) return;
-    setFinalizing(true);
+  if (!parche || !isAdmin || !active) return;
 
-    const nowIso = new Date().toISOString();
+  if (answeredCount < totalMembers) {
+    alert("Aún no todos los integrantes han respondido el quiz");
+    return;
+  }
+
+  setFinalizing(true);
+
+  const nowIso = new Date().toISOString();
     let updated = { ...parche, status: "finalizado" as const, finalizedAt: nowIso };
 
     try {
@@ -287,15 +293,6 @@ function ParcheHub() {
                   <LogOut className="h-3.5 w-3.5" /> Salir del parche
                 </button>
               )}
-              {active && (
-                <a
-                  href={`https://wa.me/?text=${encodeURIComponent(`Únete a mi parche en CaliGuide: ${window.location.origin}/parche/${code}`)}`}
-                  target="_blank" rel="noreferrer"
-                  className="rounded-full glass px-4 py-2 text-xs inline-flex items-center gap-1.5 hover:bg-white/10 transition"
-                >
-                  <Share2 className="h-3.5 w-3.5" /> Invitar
-                </a>
-              )}
             </div>
           </div>
 
@@ -414,7 +411,7 @@ function ParcheHub() {
               </p>
               <button
                 onClick={() => void finalize()}
-                disabled={finalizing || answeredCount === 0}
+                disabled={finalizing || answeredCount === 0 || answeredCount < totalMembers}
                 className="btn-sunset rounded-full px-6 py-3 inline-flex items-center gap-2 disabled:opacity-50"
               >
                 {finalizing ? (
