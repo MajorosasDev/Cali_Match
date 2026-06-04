@@ -42,14 +42,7 @@ const energiaOpts = [
   { id: "recorrer", label: "Queremos recorrer bastante", emoji: "🚀", desc: "Mucho movimiento" },
 ];
 
-// ── Q3: Franja horaria (original, conservado) ─────────────────────────────────
-const franjas = [
-  { id: "dia", label: "Día", emoji: "☀️", time: "9am – 2pm" },
-  { id: "tarde", label: "Tarde", emoji: "🌤️", time: "3pm – 7pm" },
-  { id: "noche", label: "Noche", emoji: "🌙", time: "8pm – late" },
-] as const;
-
-// ── Q4: Tipo de salida (nuevo) ────────────────────────────────────────────────
+// ── Q3: Tipo de salida ────────────────────────────────────────────────────────
 const tipoSalidaOpts = [
   { id: "manana", label: "Mañana", emoji: "☀️", desc: "7am – 12pm" },
   { id: "tarde", label: "Tarde", emoji: "🌤️", desc: "2pm – 7pm" },
@@ -57,7 +50,7 @@ const tipoSalidaOpts = [
   { id: "todo_el_dia", label: "Todo el día", emoji: "🌟", desc: "Experiencia completa" },
 ];
 
-// ── Q5: ¿Qué quieren hacer? (nuevo, multi-select) ────────────────────────────
+// ── Q4: ¿Qué quieren hacer? ───────────────────────────────────────────────────
 const actividadesOpts = [
   { id: "comer", label: "Comer rico", emoji: "🍴" },
   { id: "lugares_bonitos", label: "Conocer lugares bonitos", emoji: "📸" },
@@ -69,7 +62,7 @@ const actividadesOpts = [
   { id: "mercados", label: "Visitar mercados o tiendas", emoji: "🛍️" },
 ];
 
-// ── Q6: Experiencia a priorizar (nuevo) ───────────────────────────────────────
+// ── Q5: Experiencia a priorizar ───────────────────────────────────────────────
 const experienciaOpts = [
   { id: "cultural", label: "Cultural", emoji: "🎭" },
   { id: "gastronomica", label: "Gastronómica", emoji: "🍽️" },
@@ -79,14 +72,14 @@ const experienciaOpts = [
   { id: "urbana", label: "Exploración urbana", emoji: "🏙️" },
 ];
 
-// ── Q7: Tiempo disponible (nuevo) ────────────────────────────────────────────
+// ── Q6: Tiempo disponible ─────────────────────────────────────────────────────
 const tiempoOpts = [
   { id: "1_2h", label: "1 – 2 horas", emoji: "⏱️", desc: "Una salida rápida" },
   { id: "media_tarde", label: "Media tarde", emoji: "🕐", desc: "Unas 3–4 horas" },
   { id: "todo_el_dia", label: "Todo el día", emoji: "📅", desc: "Sin límite de tiempo" },
 ];
 
-// ── Q8: Vibe visual (nuevo) ───────────────────────────────────────────────────
+// ── Q7: Vibe visual ───────────────────────────────────────────────────────────
 const vibeOpts = [
   { id: "sunset_urbano", label: "Sunset urbano", emoji: "🌇", color: "from-orange-500 to-pink-600" },
   { id: "cafe_acogedor", label: "Café acogedor", emoji: "☕", color: "from-amber-700 to-yellow-600" },
@@ -96,7 +89,7 @@ const vibeOpts = [
   { id: "hidden_gems", label: "Hidden gems", emoji: "📸", color: "from-cyan-600 to-blue-600" },
 ];
 
-const TOTAL_STEPS = 9;
+const TOTAL_STEPS = 8;
 
 function QuizPage() {
   const navigate = useNavigate();
@@ -148,12 +141,11 @@ function QuizPage() {
     (step === 0 && (answers.disponibilidad?.length ?? 0) > 0) ||
     (step === 1 && (answers.lugares?.length ?? 0) > 0) ||
     (step === 2 && !!answers.energia) ||
-    (step === 3 && !!answers.franja) ||
-    (step === 4 && !!answers.tipoSalida) ||
-    (step === 5 && (answers.actividades?.length ?? 0) > 0) ||
-    (step === 6 && !!answers.experiencia) ||
-    (step === 7 && !!answers.tiempo) ||
-    (step === 8 && !!answers.vibe);
+    (step === 3 && !!answers.tipoSalida) ||
+    (step === 4 && (answers.actividades?.length ?? 0) > 0) ||
+    (step === 5 && !!answers.experiencia) ||
+    (step === 6 && !!answers.tiempo) ||
+    (step === 7 && !!answers.vibe);
 
   const finish = async () => {
     if (!parche) return;
@@ -284,27 +276,8 @@ function QuizPage() {
                 </Section>
               )}
 
-              {/* Q3: Franja horaria */}
+              {/* Q3: Tipo de salida */}
               {step === 3 && (
-                <Section title="¿Día, tarde o noche?" subtitle="Define la franja del plan.">
-                  <div className="grid grid-cols-3 gap-3 mt-6">
-                    {franjas.map((f) => {
-                      const active = answers.franja === f.id;
-                      return (
-                        <motion.button key={f.id} whileTap={{ scale: 0.97 }} onClick={() => setAnswers((a) => ({ ...a, franja: f.id }))}
-                          className={`glass rounded-2xl p-5 text-center transition ${active ? "ring-2 ring-[var(--sunset)] glow-orange" : "hover:bg-white/5"}`}>
-                          <div className="text-4xl">{f.emoji}</div>
-                          <div className="mt-2 font-bold">{f.label}</div>
-                          <div className="text-[10px] text-muted-foreground mt-0.5">{f.time}</div>
-                        </motion.button>
-                      );
-                    })}
-                  </div>
-                </Section>
-              )}
-
-              {/* Q4: Tipo de salida (nuevo) */}
-              {step === 4 && (
                 <Section title="¿Qué tipo de salida planean?" subtitle="Elige la franja del día.">
                   <div className="grid grid-cols-2 gap-3 mt-6">
                     {tipoSalidaOpts.map((o) => {
@@ -323,8 +296,8 @@ function QuizPage() {
                 </Section>
               )}
 
-              {/* Q5: ¿Qué quieren hacer? (nuevo, multi) */}
-              {step === 5 && (
+              {/* Q4: ¿Qué quieren hacer? */}
+              {step === 4 && (
                 <Section title="¿Qué quieren hacer hoy?" subtitle="Elige todo lo que aplique.">
                   <div className="grid grid-cols-2 gap-2 mt-6">
                     {actividadesOpts.map((o) => {
@@ -342,8 +315,8 @@ function QuizPage() {
                 </Section>
               )}
 
-              {/* Q6: Experiencia a priorizar (nuevo) */}
-              {step === 6 && (
+              {/* Q5: Experiencia a priorizar */}
+              {step === 5 && (
                 <Section title="¿Qué experiencia quieren priorizar?" subtitle="Una sola respuesta.">
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-6">
                     {experienciaOpts.map((o) => {
@@ -360,8 +333,8 @@ function QuizPage() {
                 </Section>
               )}
 
-              {/* Q7: Tiempo disponible (nuevo) */}
-              {step === 7 && (
+              {/* Q6: Tiempo disponible */}
+              {step === 6 && (
                 <Section title="¿Cuánto tiempo tienen?" subtitle="Para ajustar el plan a tu disponibilidad.">
                   <div className="grid gap-3 mt-6">
                     {tiempoOpts.map((o) => {
@@ -382,8 +355,8 @@ function QuizPage() {
                 </Section>
               )}
 
-              {/* Q8: Vibe visual (nuevo) */}
-              {step === 8 && (
+              {/* Q7: Vibe visual */}
+              {step === 7 && (
                 <Section title="¿Qué vibe representa mejor el plan?" subtitle="La carta que más les llama.">
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-6">
                     {vibeOpts.map((o) => {

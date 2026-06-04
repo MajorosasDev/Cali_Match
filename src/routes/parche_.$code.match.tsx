@@ -247,7 +247,7 @@ function Match() {
           </div>
 
           <button
-            onClick={() => void navigate({ to: "/telegram" })}
+            onClick={() => void navigate({ to: "/telegram", search: { group_id: code } })}
             className="mt-7 btn-sunset w-full rounded-2xl py-3.5 inline-flex items-center justify-center gap-2"
           >
             <Sparkles className="h-4 w-4" /> Continuar en Telegram <ArrowRight className="h-4 w-4" />
