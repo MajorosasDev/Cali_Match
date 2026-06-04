@@ -4,7 +4,19 @@ import { useEffect, useState } from "react";
 import { ArrowLeft, ArrowRight, Sparkles } from "lucide-react";
 import { GlowBg } from "@/components/GlowBg";
 import { Logo } from "@/components/Logo";
-import { getParche, type Parche } from "@/lib/parche-store";
+import { getParche, saveParche, type Parche } from "@/lib/parche-store";
+import { finalizeGroupInSupabase } from "@/lib/supabase";
+
+type BackendLugar = {
+  nombre?: string;
+  emoji?: string;
+  match_pct?: number;
+};
+
+type Answer = {
+  actividades?: string[];
+  vibe?: string;
+};
 
 export const Route = createFileRoute("/parche_/$code/match")({
   head: () => ({ meta: [{ title: "Compatibilidad — CaliMatch" }] }),
@@ -14,40 +26,115 @@ export const Route = createFileRoute("/parche_/$code/match")({
 function Match() {
   const navigate = useNavigate();
   const { code } = Route.useParams();
+
   const [parche, setParche] = useState<Parche | null>(null);
   const [score, setScore] = useState(0);
 
-  useEffect(() => setParche(getParche()), []);
+  useEffect(() => {
+    const p = getParche(code);
+    setParche(p);
+
+    if (p && (p.status ?? "active") !== "finalizado") {
+      const updated: Parche = {
+        ...p,
+        status: "finalizado",
+        finalizedAt: new Date().toISOString(),
+      };
+
+      saveParche(updated);
+      setParche(updated);
+
+      finalizeGroupInSupabase(code).catch((err) =>
+        console.error("[match] No se pudo finalizar en Supabase:", err)
+      );
+    }
+  }, [code]);
+
+  const targetScore =
+    parche?.recommendation?.score ?? computeFallbackScore(parche);
 
   useEffect(() => {
-    const target = 91;
     let i = 0;
     const id = setInterval(() => {
       i += 2;
-      setScore(Math.min(i, target));
-      if (i >= target) clearInterval(id);
+      setScore(Math.min(i, targetScore));
+      if (i >= targetScore) clearInterval(id);
     }, 25);
+
     return () => clearInterval(id);
-  }, []);
+  }, [targetScore]);
 
-  const cats = [
-    { label: "Salsa", value: 95, emoji: "💃" },
-    { label: "Rooftop", value: 82, emoji: "🌇" },
-    { label: "Brunch", value: 64, emoji: "🥐" },
-    { label: "Rumba", value: 78, emoji: "🔥" },
-  ];
+  const rec = parche?.recommendation;
+  const hasBackend = !!(rec?.top_lugares && rec.top_lugares.length > 0);
 
-  const insights = [
-    "Su parche ama los rooftops al atardecer 🌇",
-    "La salsa está peligrosamente fuerte aquí 💃",
-    "Presupuesto compatible: medio premium 💸",
-  ];
+  const backendLugares: BackendLugar[] = rec?.top_lugares ?? [];
+
+  const memberAnswers = parche?.memberAnswers ?? {};
+  const allAnswers = Object.values(memberAnswers) as Answer[];
+
+  const total = allAnswers.length || 1;
+
+  const actCounts: Record<string, number> = {};
+
+  allAnswers.forEach((a) => {
+    a.actividades?.forEach((act) => {
+      actCounts[act] = (actCounts[act] ?? 0) + 1;
+    });
+  });
+
+  const localCats = Object.entries(actCounts)
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, 4)
+    .map(([id, count]) => ({
+      label: actLabels[id]?.label ?? id,
+      emoji: actLabels[id]?.emoji ?? "✨",
+      value: Math.round((count / total) * 100),
+    }));
+
+  const actLabels: Record<string, { label: string; emoji: string }> = {
+    comer: { label: "Comer rico", emoji: "🍴" },
+    lugares_bonitos: { label: "Lugares bonitos", emoji: "📸" },
+    cultural: { label: "Cultural", emoji: "🎨" },
+    relajarse: { label: "Relajarse", emoji: "🌿" },
+    explorar_ciudad: { label: "Explorar ciudad", emoji: "🏛️" },
+    hablar_tiempo: { label: "Pasar tiempo juntos", emoji: "☕" },
+    lugares_nuevos: { label: "Descubrir lugares", emoji: "🚶" },
+    mercados: { label: "Mercados / tiendas", emoji: "🛍️" },
+  };
+
+  const fallbackCats =
+    localCats.length > 0
+      ? localCats
+      : [
+          { label: "Comer rico", value: 90, emoji: "🍴" },
+          { label: "Lugares bonitos", value: 80, emoji: "📸" },
+          { label: "Cultural", value: 70, emoji: "🎨" },
+          { label: "Relajarse", value: 65, emoji: "🌿" },
+        ];
+
+  const displayCats = hasBackend
+    ? backendLugares.slice(0, 4).map((l: BackendLugar) => ({
+        label: String(l.nombre ?? ""),
+        emoji: String(l.emoji ?? "✨"),
+        value: Number(l.match_pct ?? 0),
+      }))
+    : fallbackCats;
+
+  const insights =
+    rec?.insights?.length
+      ? rec.insights
+      : [
+          "Recomendación generada a partir del grupo 🎯",
+          "El parche tiene buena química 🔥",
+        ];
 
   return (
     <div className="min-h-screen flex flex-col">
       <GlowBg />
+
       <header className="px-5 py-5 flex items-center justify-between">
         <Logo size="sm" />
+
         <Link
           to="/parche/$code"
           params={{ code }}
@@ -57,112 +144,69 @@ function Match() {
         </Link>
       </header>
 
-      <main className="flex-1 px-5 py-6">
+      <main className="flex-1 px-5 py-6 pb-10">
         <div className="max-w-2xl mx-auto">
           <div className="text-center">
             <p className="text-xs tracking-[0.2em] text-[var(--sunset)] font-semibold">
-              COMPATIBILIDAD GRUPAL
+              {hasBackend ? "RECOMENDACIÓN PERSONALIZADA" : "COMPATIBILIDAD GRUPAL"}
             </p>
-            <h1 className="mt-2 text-3xl md:text-4xl font-extrabold">
+
+            <h1 className="mt-2 text-3xl font-extrabold">
               {parche?.name ?? "Tu parche"}{" "}
               <span className="text-gradient-sunset">tiene química 🔥</span>
             </h1>
           </div>
 
-          {/* Big match */}
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="mt-8 grid place-items-center"
-          >
-            <div className="relative h-56 w-56">
-              <div className="absolute inset-0 rounded-full bg-[image:var(--gradient-glow)] blur-3xl opacity-80" />
-              <svg viewBox="0 0 100 100" className="absolute inset-0 -rotate-90">
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="44"
-                  fill="none"
-                  stroke="oklch(1 0 0 / 0.08)"
-                  strokeWidth="8"
-                />
-                <motion.circle
-                  cx="50"
-                  cy="50"
-                  r="44"
-                  fill="none"
-                  stroke="url(#g)"
-                  strokeWidth="8"
-                  strokeLinecap="round"
-                  strokeDasharray={`${(score / 100) * 276} 276`}
-                />
-                <defs>
-                  <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0%" stopColor="oklch(0.7 0.21 35)" />
-                    <stop offset="100%" stopColor="oklch(0.85 0.17 88)" />
-                  </linearGradient>
-                </defs>
-              </svg>
-              <div className="absolute inset-0 grid place-items-center">
-                <div className="text-center">
-                  <div className="text-6xl font-extrabold text-gradient-sunset">{score}%</div>
-                  <div className="text-xs text-muted-foreground mt-1">match grupal</div>
-                </div>
-              </div>
-            </div>
-          </motion.div>
+          <div className="mt-8 text-center text-5xl font-bold">
+            {score}%
+          </div>
 
-          {/* Categories */}
-          <div className="mt-8 glass rounded-3xl p-5 space-y-4">
-            <p className="text-xs tracking-[0.2em] text-[var(--sunset)] font-semibold">
-              CATEGORÍAS FAVORITAS
-            </p>
-            {cats.map((c, i) => (
-              <div key={c.label}>
-                <div className="flex justify-between text-sm mb-1.5">
-                  <span className="font-medium">
+          <div className="mt-8 space-y-3">
+            {displayCats.map((c, i) => (
+              <div key={i}>
+                <div className="flex justify-between text-sm mb-1">
+                  <span>
                     {c.emoji} {c.label}
                   </span>
-                  <span className="text-muted-foreground">{c.value}%</span>
+                  <span>{c.value}%</span>
                 </div>
-                <div className="h-2 rounded-full bg-white/5 overflow-hidden">
+
+                <div className="h-2 bg-white/10 rounded-full">
                   <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: `${c.value}%` }}
-                    transition={{ delay: 0.2 + i * 0.1, duration: 0.6, ease: "easeOut" }}
-                    className="h-full bg-[image:var(--gradient-sunset)]"
+                    className="h-full bg-orange-400"
                   />
                 </div>
               </div>
             ))}
           </div>
 
-          {/* Insights */}
-          <div className="mt-5 grid gap-2">
+          <div className="mt-6 space-y-2">
             {insights.map((t, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.4 + i * 0.1 }}
-                className="glass rounded-2xl px-4 py-3 text-sm"
-              >
+              <div key={i} className="p-3 rounded-xl bg-white/5 text-sm">
                 {t}
-              </motion.div>
+              </div>
             ))}
           </div>
 
           <motion.button
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.7 }}
-            onClick={() => navigate({ to: "/landing" })}
-            className="mt-7 btn-sunset w-full rounded-2xl py-3.5 inline-flex items-center justify-center gap-2"
+            onClick={() =>
+              navigate({ to: "/telegram", search: { group_id: code } })
+            }
+            className="mt-7 w-full rounded-2xl py-3 flex items-center justify-center gap-2 bg-orange-500 text-white"
           >
-            <Sparkles className="h-4 w-4" /> Ver mi landing <ArrowRight className="h-4 w-4" />
+            <Sparkles className="h-4 w-4" />
+            Ir a Telegram <ArrowRight className="h-4 w-4" />
           </motion.button>
         </div>
       </main>
     </div>
   );
+}
+
+function computeFallbackScore(parche: Parche | null): number {
+  const answers = Object.values(parche?.memberAnswers ?? {});
+  if (answers.length === 0) return 72;
+  return Math.min(72 + answers.length * 4, 94);
 }

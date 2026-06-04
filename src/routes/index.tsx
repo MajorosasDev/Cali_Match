@@ -63,12 +63,20 @@ function Landing() {
               Grupos
             </a>
           </nav>
-          <Link
-            to="/registro"
-            className="btn-sunset rounded-full px-4 py-2 text-sm inline-flex items-center gap-2"
-          >
-            <Sparkles className="h-4 w-4" /> Empezar
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              to="/landing"
+              className="rounded-full glass px-4 py-2 text-sm inline-flex items-center gap-2 hover:bg-white/10 transition"
+            >
+              <Users className="h-4 w-4" /> Mis parches
+            </Link>
+            <Link
+              to="/registro"
+              className="btn-sunset rounded-full px-4 py-2 text-sm inline-flex items-center gap-2"
+            >
+              <Sparkles className="h-4 w-4" /> Empezar
+            </Link>
+          </div>
         </div>
       </header>
 

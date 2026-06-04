@@ -1,7 +1,7 @@
-// Lightweight client-side store using localStorage for demo flow.
+// Lightweight client-side store using localStorage.
+export type Vibe = "salsa" | "rooftop" | "brunch" | "cafe" | "cultura" | "perreo";
 export type Ambiente = "elegante" | "casual" | "alternativo" | "tropical" | "romantico" | "fiesta";
 export type Horario = "tarde" | "noche" | "madrugada";
-export type Distancia = "cerca" | "medio" | "lejos";
 
 export interface Profile {
   name: string;
@@ -12,9 +12,11 @@ export interface Profile {
 }
 
 export interface OnboardingAnswers {
+  // New fields
+  turistico?: string;   // "famosos" | "mix" | "local"
+  ambiente?: string[];  // multi-select
+  // Legacy fields kept for backward compat
   budget?: string;
-  // distancia?: Distancia;
-  ambiente?: string[];
   horario?: Horario;
   experiencias?: string[];
 }
@@ -24,26 +26,49 @@ export interface Member {
   name: string;
   emoji: string;
   status: "answered" | "pending";
-  answers?: OnboardingAnswers;
 }
 
 export interface AdminQuiz {
-  disponibilidad?: string[]; // e.g. ["lun","mar"]
+  // Group quiz — 6 questions
+  tipoSalida?: string;      // "manana" | "tarde" | "noche_tranquila" | "todo_el_dia"
+  actividades?: string[];   // multi-select
+  experiencia?: string;     // "cultural" | "gastronomica" | "turistica" | ...
+  energia?: string;         // "relax" | "curiosos" | "tranquilo_comida" | "recorrer"
+  tiempo?: string;          // "1_2h" | "media_tarde" | "todo_el_dia"
+  vibe?: string;            // "sunset_urbano" | "cafe_acogedor" | ...
+  // Legacy fields kept for backward compat
+  disponibilidad?: string[];
   lugares?: string[];
   mood?: string;
   franja?: "dia" | "tarde" | "noche";
+}
+
+export interface RecommendationResult {
+  persona_prototipica?: Record<string, unknown>;
+  top_lugares?: Array<Record<string, unknown>>;
+  score?: number;
+  insights?: string[];
+  explicacion?: string;
 }
 
 export interface Parche {
   code: string;
   name: string;
   size: number;
-  type: string;
+  type?: string;                              // kept optional for backward compat
+  createdBy?: string | null;
   members: Member[];
   adminAnswered?: boolean;
   adminQuiz?: AdminQuiz;
+  memberAnswers?: Record<string, AdminQuiz>;  // quiz answers keyed by member id
+  status?: "active" | "finalizado";
+  finalizedAt?: string;
+  recommendation?: RecommendationResult;      // result from backend
 }
 
+export const isParcheActive = (p: Parche) => (p.status ?? "active") === "active";
+
+// ── Keys ─────────────────────────────────────────────────────────────────────
 const PROFILE_KEY = "cg.profile";
 const ONB_KEY = "cg.onboarding";
 const PARCHE_KEY = "cg.parche";
@@ -53,6 +78,7 @@ const LEGACY_SESSION_KEY = "cg.session.email";
 
 const safeWindow = () => typeof window !== "undefined";
 
+// ── Profile ───────────────────────────────────────────────────────────────────
 export const saveProfile = (p: Profile) =>
   safeWindow() && localStorage.setItem(PROFILE_KEY, JSON.stringify(p));
 export const getProfile = (): Profile | null => {
@@ -62,7 +88,7 @@ export const getProfile = (): Profile | null => {
 };
 export const clearProfile = () => safeWindow() && localStorage.removeItem(PROFILE_KEY);
 
-// Sesión ligera: guarda el id UUID y email del usuario activo
+// ── Session ───────────────────────────────────────────────────────────────────
 export const saveSession = (id: string, email: string) => {
   if (!safeWindow()) return;
   localStorage.setItem(SESSION_KEY, id);
@@ -88,6 +114,7 @@ export const clearSession = () => {
   localStorage.removeItem(PROFILE_KEY);
 };
 
+// ── Onboarding ────────────────────────────────────────────────────────────────
 export const saveOnboarding = (a: OnboardingAnswers) =>
   safeWindow() && localStorage.setItem(ONB_KEY, JSON.stringify(a));
 export const getOnboarding = (): OnboardingAnswers => {
@@ -96,6 +123,7 @@ export const getOnboarding = (): OnboardingAnswers => {
   return raw ? JSON.parse(raw) : {};
 };
 
+// ── Parches ───────────────────────────────────────────────────────────────────
 export const getParches = (): Parche[] => {
   if (!safeWindow()) return [];
   const raw = localStorage.getItem(PARCHES_KEY);
@@ -133,31 +161,17 @@ export const removeParche = (code: string) => {
   }
 };
 
+// ── Helpers ───────────────────────────────────────────────────────────────────
 export const genCode = () => Math.random().toString(36).slice(2, 8).toUpperCase();
 
-export const mockMembers = (count: number, currentName?: string): Member[] => {
-  const pool = [
-    { name: "Mariana", emoji: "💃" },
-    { name: "Andrés", emoji: "🕺" },
-    { name: "Camila", emoji: "🌺" },
-    { name: "Sebas", emoji: "🍹" },
-    { name: "Lucía", emoji: "✨" },
-    { name: "Juanjo", emoji: "🎷" },
-    { name: "Vale", emoji: "🌴" },
-  ];
-  const others = pool.slice(0, Math.max(0, count - 1)).map((m, i) => ({
-    id: `m_${i}`,
-    name: m.name,
-    emoji: m.emoji,
-    status: (i === 0 ? "answered" : "pending") as Member["status"],
-  }));
-  return [
-    {
-      id: "me",
-      name: currentName ?? "Tú",
-      emoji: "🔥",
-      status: "answered",
-    },
-    ...others,
-  ];
-};
+const EMOJIS = ["💃", "🕺", "🌺", "🍹", "✨", "🎷", "🌴", "🦋", "🌊", "🎉", "🔥", "⚡"];
+export const randomEmoji = () => EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
+
+export const createStarterMembers = (currentName?: string, sessionId?: string | null): Member[] => [
+  {
+    id: sessionId ?? "me",
+    name: currentName ?? "Tú",
+    emoji: "🔥",
+    status: "pending",
+  },
+];

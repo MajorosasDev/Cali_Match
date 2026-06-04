@@ -1,43 +1,79 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "motion/react";
 import { useState } from "react";
-import { ArrowLeft, Check, Copy, Send } from "lucide-react";
+import { ArrowLeft, Check, Copy, Loader2, Send } from "lucide-react";
 import { GlowBg } from "@/components/GlowBg";
+import { useSearch } from "@tanstack/react-router";
 import { Logo } from "@/components/Logo";
 
 export const Route = createFileRoute("/telegram")({
   head: () => ({ meta: [{ title: "Abrir Telegram — CaliGuide" }] }),
+  validateSearch: (search: Record<string, unknown>) => ({
+    group_id: String(search.group_id ?? ""),
+  }),
   component: TelegramRedirect,
 });
 
-const BOT_URL = "https://t.me/CaliGuideBot";
+const API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
+const BOT_HANDLE = "calimatch_recommender_bot";
+
+async function sendToTelegram(groupId: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/enviar-telegram`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ group_id: groupId }),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    const msg = typeof data === "object" && data && "detail" in data
+      ? String((data as { detail?: unknown }).detail)
+      : "No se pudo enviar la recomendación.";
+    throw new Error(msg);
+  }
+}
 
 function TelegramRedirect() {
   const [copied, setCopied] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
+
+  const { group_id: groupId } = useSearch({ from: "/telegram" });
+
+  // Deep link: Telegram auto-sends "/start GROUP_ID" when user opens this URL
+  const botDeepLink = groupId
+    ? `https://t.me/${BOT_HANDLE}?start=${groupId}`
+    : `https://t.me/${BOT_HANDLE}`;
 
   const copy = async () => {
-    await navigator.clipboard.writeText(BOT_URL);
+    await navigator.clipboard.writeText(botDeepLink);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
-  // Faux QR pattern - decorative
-  const qr = Array.from({ length: 21 * 21 }, (_, i) => {
-    const x = i % 21, y = Math.floor(i / 21);
-    const corner = (x < 7 && y < 7) || (x > 13 && y < 7) || (x < 7 && y > 13);
-    if (corner) {
-      const cx = x < 7 ? x : x - 14, cy = y < 7 ? y : y - 14;
-      return (cx === 0 || cx === 6 || cy === 0 || cy === 6 || (cx >= 2 && cx <= 4 && cy >= 2 && cy <= 4));
+  const handleSend = async () => {
+    if (!groupId) {
+      setSendError("No se encontró el ID del grupo. Vuelve al parche e inténtalo de nuevo.");
+      return;
     }
-    return (x * 7 + y * 13 + (x ^ y) * 3) % 3 === 0;
-  });
+    setSending(true);
+    setSendError(null);
+    try {
+      await sendToTelegram(groupId);
+      setSent(true);
+    } catch (err) {
+      setSendError(err instanceof Error ? err.message : "Error desconocido.");
+    } finally {
+      setSending(false);
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
       <GlowBg />
       <header className="px-5 py-5 flex items-center justify-between">
         <Logo />
-        <Link to="/personal_landing" className="text-sm text-muted-foreground inline-flex items-center gap-1"><ArrowLeft className="h-4 w-4" /> Mi espacio</Link>
+        <Link to="/landing" className="text-sm text-muted-foreground inline-flex items-center gap-1"><ArrowLeft className="h-4 w-4" /> Mi espacio</Link>
       </header>
 
       <main className="flex-1 grid place-items-center px-5 py-8">
@@ -47,53 +83,65 @@ function TelegramRedirect() {
             Empieza ya.<br /><span className="text-gradient-sunset">Sin instalar nada.</span>
           </h1>
           <p className="mt-3 text-sm text-muted-foreground">
-            Tu recomendación personalizada estará lista en Telegram en menos de 60 segundos.
+            Sigue los dos pasos para recibir tu recomendación en Telegram.
           </p>
 
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.15 }}
-            className="mt-7 relative inline-block"
-          >
-            <div className="absolute -inset-8 bg-[image:var(--gradient-glow)] blur-3xl opacity-70 -z-10" />
-            <div className="rounded-3xl bg-white p-4 shadow-[var(--shadow-glow-pink)]">
-              <div className="grid grid-cols-[repeat(21,1fr)] gap-[2px] w-56">
-                {qr.map((on, i) => (
-                  <div key={i} className={`aspect-square ${on ? "bg-black" : "bg-white"}`} />
-                ))}
-              </div>
-              <div className="mt-3 text-[10px] tracking-widest font-bold text-neutral-700 inline-flex items-center gap-1">
-                <Send className="h-3 w-3" /> ESCANEA
-              </div>
-            </div>
-          </motion.div>
-
-          <div className="mt-7 flex flex-col gap-2">
+          {/* Step 1 */}
+          <div className="mt-7 glass rounded-3xl p-5 text-left">
+            <p className="text-xs font-bold tracking-widest text-[var(--sunset)] mb-2">PASO 1 — VINCULAR EL BOT</p>
+            <p className="text-sm text-muted-foreground mb-4">
+              Abre el bot y presiona <strong className="text-foreground">Iniciar</strong>. Esto vincula tu Telegram con el grupo.
+            </p>
             <a
-              href={BOT_URL}
-              target="_blank" rel="noreferrer"
-              className="btn-sunset rounded-full px-6 py-3.5 inline-flex items-center justify-center gap-2"
+              href={botDeepLink}
+              target="_blank"
+              rel="noreferrer"
+              className="btn-sunset rounded-full px-6 py-3 inline-flex items-center justify-center gap-2 w-full"
             >
-              <Send className="h-4 w-4" /> Abrir @CaliGuideBot
+              <Send className="h-4 w-4" /> Abrir @CaliMatch Bot
             </a>
             <button
               onClick={copy}
-              className="glass rounded-full px-6 py-3 text-sm inline-flex items-center justify-center gap-2 hover:bg-white/10 transition"
+              className="mt-2 glass rounded-full px-6 py-2.5 text-sm inline-flex items-center justify-center gap-2 hover:bg-white/10 transition w-full"
             >
-              {copied ? <><Check className="h-4 w-4" /> Link copiado</> : <><Copy className="h-4 w-4" /> Copiar link</>}
+              {copied ? <><Check className="h-4 w-4" /> Link copiado</> : <><Copy className="h-4 w-4" /> Copiar link del bot</>}
             </button>
-            <Link
-              to="/personal_landing"
-              className="rounded-full px-6 py-3 text-sm inline-flex items-center justify-center gap-2 text-muted-foreground hover:text-foreground transition"
-            >
-              <ArrowLeft className="h-4 w-4" /> Volver a mi espacio
-            </Link>
           </div>
 
-          <p className="mt-6 text-xs text-muted-foreground">
-            Tu parche y respuestas ya están guardados — el bot los reconocerá automáticamente. Puedes volver al inicio para crear más grupos.
-          </p>
+          {/* Step 2 */}
+          <div className="mt-3 glass rounded-3xl p-5 text-left">
+            <p className="text-xs font-bold tracking-widest text-[var(--sunset)] mb-2">PASO 2 — RECIBIR RECOMENDACIÓN</p>
+            <p className="text-sm text-muted-foreground mb-4">
+              Ya vinculado el bot, haz click aquí para recibir los lugares recomendados para tu parche.
+            </p>
+            {sent ? (
+              <div className="rounded-full px-6 py-3 inline-flex items-center justify-center gap-2 bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 text-sm font-semibold w-full">
+                <Check className="h-4 w-4" /> Recomendación enviada
+              </div>
+            ) : (
+              <>
+                <button
+                  onClick={() => void handleSend()}
+                  disabled={sending || !groupId}
+                  className="btn-sunset rounded-full px-6 py-3 inline-flex items-center justify-center gap-2 disabled:opacity-50 w-full"
+                >
+                  {sending
+                    ? <><Loader2 className="h-4 w-4 animate-spin" /> Enviando...</>
+                    : <><Send className="h-4 w-4" /> Enviar recomendación</>}
+                </button>
+                {sendError && (
+                  <p className="text-xs text-red-400 mt-2">{sendError}</p>
+                )}
+              </>
+            )}
+          </div>
+
+          <Link
+            to="/landing"
+            className="mt-4 rounded-full px-6 py-3 text-sm inline-flex items-center justify-center gap-2 text-muted-foreground hover:text-foreground transition"
+          >
+            <ArrowLeft className="h-4 w-4" /> Volver a mi espacio
+          </Link>
         </motion.div>
       </main>
     </div>
