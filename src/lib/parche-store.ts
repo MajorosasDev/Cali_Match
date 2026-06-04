@@ -12,8 +12,11 @@ export interface Profile {
 }
 
 export interface OnboardingAnswers {
+  // New fields
+  turistico?: string;   // "famosos" | "mix" | "local"
+  ambiente?: string[];  // multi-select
+  // Legacy fields kept for backward compat
   budget?: string;
-  ambiente?: string[];
   horario?: Horario;
   experiencias?: string[];
 }
@@ -26,10 +29,26 @@ export interface Member {
 }
 
 export interface AdminQuiz {
+  // Group quiz — 6 questions
+  tipoSalida?: string;      // "manana" | "tarde" | "noche_tranquila" | "todo_el_dia"
+  actividades?: string[];   // multi-select
+  experiencia?: string;     // "cultural" | "gastronomica" | "turistica" | ...
+  energia?: string;         // "relax" | "curiosos" | "tranquilo_comida" | "recorrer"
+  tiempo?: string;          // "1_2h" | "media_tarde" | "todo_el_dia"
+  vibe?: string;            // "sunset_urbano" | "cafe_acogedor" | ...
+  // Legacy fields kept for backward compat
   disponibilidad?: string[];
   lugares?: string[];
   mood?: string;
   franja?: "dia" | "tarde" | "noche";
+}
+
+export interface RecommendationResult {
+  persona_prototipica?: Record<string, unknown>;
+  top_lugares?: Array<Record<string, unknown>>;
+  score?: number;
+  insights?: string[];
+  explicacion?: string;
 }
 
 export interface Parche {
@@ -44,6 +63,7 @@ export interface Parche {
   memberAnswers?: Record<string, AdminQuiz>;  // quiz answers keyed by member id
   status?: "active" | "finalizado";
   finalizedAt?: string;
+  recommendation?: RecommendationResult;      // result from backend
 }
 
 export const isParcheActive = (p: Parche) => (p.status ?? "active") === "active";

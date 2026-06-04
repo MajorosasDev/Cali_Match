@@ -15,6 +15,7 @@ import {
   saveGroupToSupabase, fetchGroupFromSupabase,
   updateGroupMembersInSupabase, updateGroupInfoInSupabase, finalizeGroupInSupabase,
 } from "@/lib/supabase";
+import { generateRecommendationFromBackend } from "@/lib/recommendation";
 
 export const Route = createFileRoute("/parche/$code")({
   head: () => ({ meta: [{ title: "Parche — CaliGuide" }] }),
@@ -131,12 +132,35 @@ function ParcheHub() {
   const finalize = async () => {
     if (!parche || !isAdmin || !active) return;
     setFinalizing(true);
-    const updated = { ...parche, status: "finalizado" as const, finalizedAt: new Date().toISOString() };
+
+    const nowIso = new Date().toISOString();
+    let updated = { ...parche, status: "finalizado" as const, finalizedAt: nowIso };
+
+    try {
+      const result = await generateRecommendationFromBackend(code);
+      // Store backend result in parche so match page can read it
+      updated = {
+        ...updated,
+        recommendation: {
+          persona_prototipica: result.persona_prototipica as unknown as Record<string, unknown>,
+          top_lugares: result.top_lugares as unknown as Array<Record<string, unknown>>,
+          score: result.score,
+          insights: result.insights,
+          explicacion: result.explicacion,
+        },
+      };
+    } catch (err) {
+      console.error("[groups] recommendation error:", err);
+      // Still finalize even if backend fails
+      try {
+        await finalizeGroupInSupabase(code);
+      } catch (e) {
+        console.error("[groups] finalize fallback error:", e);
+      }
+    }
+
     saveParche(updated);
     setParche(updated);
-    try {
-      await finalizeGroupInSupabase(code);
-    } catch (err) { console.error("[groups] finalize error:", err); }
     setFinalizing(false);
     void navigate({ to: "/parche/$code/match", params: { code } });
   };

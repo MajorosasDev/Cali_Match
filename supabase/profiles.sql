@@ -5,9 +5,11 @@ create table if not exists public.profiles (
   email text,
   celular text,
   fecha_nacimiento date,
+  onboarding_answers jsonb default '{}'::jsonb,
   created_at timestamp with time zone default now(),
   updated_at timestamp with time zone default now()
 );
+alter table public.profiles add column if not exists onboarding_answers jsonb default '{}'::jsonb;
 
 alter table public.profiles enable row level security;
 

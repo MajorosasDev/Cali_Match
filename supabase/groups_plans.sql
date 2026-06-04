@@ -34,6 +34,7 @@ alter table public.group_details add column if not exists code text;
 alter table public.group_details add column if not exists members jsonb default '[]'::jsonb;
 alter table public.group_details add column if not exists quiz_answers jsonb default '{}'::jsonb;
 alter table public.group_details add column if not exists metadata jsonb default '{}'::jsonb;
+alter table public.group_details add column if not exists recommendation jsonb default '{}'::jsonb;
 alter table public.group_details add column if not exists created_at timestamptz default now();
 
 -- ─── Índices ───────────────────────────────────────────────────────────────────
@@ -43,10 +44,18 @@ create unique index if not exists group_details_group_id_idx on public.group_det
 alter table public.groups enable row level security;
 alter table public.group_details enable row level security;
 
-create policy if not exists "Auth read groups"   on public.groups for select using (auth.role() = 'authenticated');
-create policy if not exists "Auth insert groups" on public.groups for insert with check (auth.role() = 'authenticated');
-create policy if not exists "Auth update groups" on public.groups for update using (auth.role() = 'authenticated');
+drop policy if exists "Auth read groups" on public.groups;
+drop policy if exists "Auth insert groups" on public.groups;
+drop policy if exists "Auth update groups" on public.groups;
 
-create policy if not exists "Auth read group_details"   on public.group_details for select using (auth.role() = 'authenticated');
-create policy if not exists "Auth insert group_details" on public.group_details for insert with check (auth.role() = 'authenticated');
-create policy if not exists "Auth update group_details" on public.group_details for update using (auth.role() = 'authenticated');
+drop policy if exists "Auth read group_details" on public.group_details;
+drop policy if exists "Auth insert group_details" on public.group_details;
+drop policy if exists "Auth update group_details" on public.group_details;
+
+create policy "Public read groups" on public.groups for select using (true);
+create policy "Public insert groups" on public.groups for insert with check (true);
+create policy "Public update groups" on public.groups for update using (true) with check (true);
+
+create policy "Public read group_details" on public.group_details for select using (true);
+create policy "Public insert group_details" on public.group_details for insert with check (true);
+create policy "Public update group_details" on public.group_details for update using (true) with check (true);

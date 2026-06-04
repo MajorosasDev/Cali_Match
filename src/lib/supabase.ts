@@ -113,6 +113,16 @@ export const finalizeGroupInSupabase = async (code: string) => {
   if (error) throw error;
 };
 
+// ── Save personal onboarding answers ─────────────────────────────────────────
+
+export const saveOnboardingToSupabase = async (userId: string, answers: unknown) => {
+  const { error } = await supabase
+    .from("profiles")
+    .update({ onboarding_answers: answers })
+    .eq("id", userId);
+  if (error) throw error;
+};
+
 // ── Update group info ─────────────────────────────────────────────────────────
 
 export const updateGroupInfoInSupabase = async (
